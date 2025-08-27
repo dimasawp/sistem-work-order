@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Task extends Model {
+class Job extends Model {
     protected $fillable = [
         'title',
         'employee_id',
-        'task_giver',
+        'job_giver',
         'tools_and_materials',
         'description',
         'start_time',
@@ -16,7 +16,7 @@ class Task extends Model {
     ];
 
     public function employees() {
-        return $this->belongsToMany(Employee::class, 'task_receivers', 'task_id', 'employee_id')
+        return $this->belongsToMany(Employee::class, 'job_receivers', 'job_id', 'employee_id')
             ->withTimestamps();
     }
 }

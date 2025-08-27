@@ -54,8 +54,8 @@
                     
                     {{-- PEMBERI JOB --}}
                     <div class="mb-3 position-relative">
-                        <label for="task_giver">Pemberi Job</label>
-                        <input type="text" id="task_giver" class="form-control" placeholder="Ketik nama / NIK pemberi job">
+                        <label for="job_giver">Pemberi Job</label>
+                        <input type="text" id="job_giver" class="form-control" placeholder="Ketik nama / NIK pemberi job">
                         <div id="jobGiverSuggestions" class="list-group position-absolute w-100" style="z-index: 1000;"></div>
                     </div>
 
@@ -144,7 +144,7 @@
             let calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 selectable: true,
-                events: '/api/events',
+                events: '/api/jobs',
                 eventDisplay: 'block',
 
                 /*Menampilkan waktu atau tidak*/
@@ -180,7 +180,7 @@
 
                     document.getElementById('title').value = '';
                     document.getElementById('event_id').value = '';
-                    document.getElementById('task_giver').value = '';
+                    document.getElementById('job_giver').value = '';
                     document.getElementById('tools_and_materials').value = '';
                     document.getElementById('description').value = '';
                     document.getElementById('start_time').value = info.dateStr + "T08:00";
@@ -201,7 +201,7 @@
 
                     document.getElementById('event_id').value = event.id;
                     document.getElementById('title').value = event.title || '';
-                    document.getElementById('task_giver').value = data.task_giver || '';
+                    document.getElementById('job_giver').value = data.job_giver || '';
                     document.getElementById('tools_and_materials').value = data.tools_and_materials || '';
                     document.getElementById('description').value = data.description || '';
                     document.getElementById('start_time').value = formatDateForInput(event.startStr);
@@ -217,7 +217,7 @@
                 },
 
                 eventDidMount: function(info) {
-                    let giver = info.event.extendedProps.task_giver || '-';
+                    let giver = info.event.extendedProps.job_giver || '-';
 
                     // Ambil hanya nama setelah " - "
                     if (giver.includes(' - ')) {
@@ -247,12 +247,12 @@
                 e.preventDefault();
                 const id = document.getElementById('event_id').value;
                 const method = id ? 'PUT' : 'POST';
-                const url = id ? `/api/events/${id}` : '/api/events';
+                const url = id ? `/api/jobs/${id}` : '/api/jobs';
 
                 const payload = {
                     title: document.getElementById('title').value,
                     employee_ids: JSON.parse(document.getElementById('employee_ids').value || "[]"),
-                    task_giver: document.getElementById('task_giver').value,
+                    job_giver: document.getElementById('job_giver').value,
                     tools_and_materials: document.getElementById('tools_and_materials').value,
                     description: document.getElementById('description').value,
                     start_time: document.getElementById('start_time').value,
@@ -278,7 +278,7 @@
                 const id = document.getElementById('event_id').value;
                 if (!id) return;
 
-                fetch(`/api/events/${id}`, {
+                fetch(`/api/jobs/${id}`, {
                     method: 'DELETE'
                 })
                 .then(res => res.ok ? res.json().catch(() => ({})) : Promise.reject(res))
@@ -293,7 +293,7 @@
 
     <script>
         const allKaryawan = @json($allKaryawan);
-        const jobInput = document.getElementById('task_giver');
+        const jobInput = document.getElementById('job_giver');
         const jobSuggestions = document.getElementById('jobGiverSuggestions');
 
         function showJobSuggestions(keyword) {

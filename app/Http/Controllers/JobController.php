@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
-use App\Models\Task;
+use App\Models\Job;
 use Illuminate\Http\Request;
 
-class TaskController extends Controller {
+class JobController extends Controller {
     public function viewCalendar() {
-        // Semua karyawan → untuk pemberi job (task_giver)
+        // Semua karyawan → untuk pemberi job (job_giver)
         $allKaryawan = Employee::select('id', 'nik', 'enroll_id', 'name', 'kd_bagian')->get();
 
         // Hanya listrik instrumen + outsourcing → untuk pengambil job
@@ -17,7 +17,7 @@ class TaskController extends Controller {
             'TEHNISI OUTSORSING'
         ])->select('id', 'nik', 'enroll_id', 'name', 'kd_bagian')->get();
 
-        return view('calendar', [
+        return view('index', [
             'allKaryawan' => $allKaryawan,
             'teknisiListrik' => $teknisiListrik,
         ]);
@@ -25,14 +25,14 @@ class TaskController extends Controller {
 
 
     public function index() {
-        $tasks = Task::with('employees')->get()->map(function ($task) {
+        $tasks = Job::with('employees')->get()->map(function ($task) {
             return [
                 'id' => $task->id,
                 'title' => $task->title,
                 'start' => $task->start_time,
                 'end' => $task->end_time,
-                // 'task_giver' => $task->task_giver ? explode(' - ', $task->task_giver, 2)[1] ?? $task->task_giver : null,
-                'task_giver' => $task->task_giver,
+                // 'job_giver' => $task->job_giver ? explode(' - ', $task->job_giver, 2)[1] ?? $task->job_giver : null,
+                'job_giver' => $task->job_giver,
                 'tools_and_materials' => $task->tools_and_materials,
                 'description' => $task->description,
                 'employees' => $task->employees->map(function ($emp) {
@@ -52,7 +52,7 @@ class TaskController extends Controller {
     public function store(Request $request) {
         $data = $request->validate([
             'title' => 'required|string',
-            'task_giver' => 'nullable|string',
+            'job_giver' => 'nullable|string',
             'tools_and_materials' => 'nullable|string',
             'description' => 'nullable|string',
             'start_time' => 'required|date',
@@ -61,9 +61,9 @@ class TaskController extends Controller {
         ]);
 
         // simpan task
-        $task = Task::create([
+        $task = Job::create([
             'title' => $data['title'],
-            'task_giver' => $data['task_giver'] ?? null,
+            'job_giver' => $data['job_giver'] ?? null,
             'tools_and_materials' => $data['tools_and_materials'] ?? null,
             'description' => $data['description'] ?? null,
             'start_time' => $data['start_time'],
@@ -79,11 +79,11 @@ class TaskController extends Controller {
     }
 
     public function update(Request $request, $id) {
-        $task = Task::findOrFail($id);
+        $task = Job::findOrFail($id);
 
         $task->update($request->only([
             'title',
-            'task_giver',
+            'job_giver',
             'tools_and_materials',
             'description',
             'start_time',
@@ -99,7 +99,7 @@ class TaskController extends Controller {
 
 
     public function destroy($id) {
-        $task = Task::findOrFail($id);
+        $task = Job::findOrFail($id);
         $task->employees()->detach();
         $task->delete();
 

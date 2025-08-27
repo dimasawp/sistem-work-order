@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\EmployeeController;
-use App\Http\Controllers\TaskController;
+use App\Http\Controllers\JobController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // })->middleware('auth:sanctum');
 
-Route::get('/events', [TaskController::class, 'index']);
-Route::post('/events', [TaskController::class, 'store']);
-Route::put('/events/{id}', [TaskController::class, 'update']);
-Route::delete('/events/{id}', [TaskController::class, 'destroy']);
+Route::get('/jobs', [JobController::class, 'index']);
+Route::post('/jobs', [JobController::class, 'store']);
+Route::put('/jobs/{id}', [JobController::class, 'update']);
+Route::delete('/jobs/{id}', [JobController::class, 'destroy']);
 Route::post('/sync-employees', [EmployeeController::class, 'sync'])->name('employees.sync');
