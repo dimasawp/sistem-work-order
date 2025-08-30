@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "336fcede590bbb09b46d936161ab7886",
+    "content-hash": "81576c03de3b077c1e18f383d57ffc16",
     "packages": [
         {
             "name": "brick/math",
@@ -2072,6 +2072,82 @@
             "time": "2024-12-08T08:18:47+00:00"
         },
         {
+            "name": "livewire/livewire",
+            "version": "v3.6.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/livewire/livewire.git",
+                "reference": "ef04be759da41b14d2d129e670533180a44987dc"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/livewire/livewire/zipball/ef04be759da41b14d2d129e670533180a44987dc",
+                "reference": "ef04be759da41b14d2d129e670533180a44987dc",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/database": "^10.0|^11.0|^12.0",
+                "illuminate/routing": "^10.0|^11.0|^12.0",
+                "illuminate/support": "^10.0|^11.0|^12.0",
+                "illuminate/validation": "^10.0|^11.0|^12.0",
+                "laravel/prompts": "^0.1.24|^0.2|^0.3",
+                "league/mime-type-detection": "^1.9",
+                "php": "^8.1",
+                "symfony/console": "^6.0|^7.0",
+                "symfony/http-kernel": "^6.2|^7.0"
+            },
+            "require-dev": {
+                "calebporzio/sushi": "^2.1",
+                "laravel/framework": "^10.15.0|^11.0|^12.0",
+                "mockery/mockery": "^1.3.1",
+                "orchestra/testbench": "^8.21.0|^9.0|^10.0",
+                "orchestra/testbench-dusk": "^8.24|^9.1|^10.0",
+                "phpunit/phpunit": "^10.4|^11.5",
+                "psy/psysh": "^0.11.22|^0.12"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Livewire": "Livewire\\Livewire"
+                    },
+                    "providers": [
+                        "Livewire\\LivewireServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "Livewire\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Caleb Porzio",
+                    "email": "calebporzio@gmail.com"
+                }
+            ],
+            "description": "A front-end framework for Laravel.",
+            "support": {
+                "issues": "https://github.com/livewire/livewire/issues",
+                "source": "https://github.com/livewire/livewire/tree/v3.6.4"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/livewire",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-07-17T05:12:15+00:00"
+        },
+        {
             "name": "monolog/monolog",
             "version": "3.9.0",
             "source": {
@@ -3337,6 +3413,89 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.9.0"
             },
             "time": "2025-06-25T14:20:11+00:00"
+        },
+        {
+            "name": "spatie/laravel-permission",
+            "version": "6.21.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/laravel-permission.git",
+                "reference": "6a118e8855dfffcd90403aab77bbf35a03db51b3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/laravel-permission/zipball/6a118e8855dfffcd90403aab77bbf35a03db51b3",
+                "reference": "6a118e8855dfffcd90403aab77bbf35a03db51b3",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/auth": "^8.12|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/container": "^8.12|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/contracts": "^8.12|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/database": "^8.12|^9.0|^10.0|^11.0|^12.0",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "laravel/passport": "^11.0|^12.0",
+                "laravel/pint": "^1.0",
+                "orchestra/testbench": "^6.23|^7.0|^8.0|^9.0|^10.0",
+                "phpunit/phpunit": "^9.4|^10.1|^11.5"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Spatie\\Permission\\PermissionServiceProvider"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-main": "6.x-dev",
+                    "dev-master": "6.x-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "Spatie\\Permission\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Freek Van der Herten",
+                    "email": "freek@spatie.be",
+                    "homepage": "https://spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Permission handling for Laravel 8.0 and up",
+            "homepage": "https://github.com/spatie/laravel-permission",
+            "keywords": [
+                "acl",
+                "laravel",
+                "permission",
+                "permissions",
+                "rbac",
+                "roles",
+                "security",
+                "spatie"
+            ],
+            "support": {
+                "issues": "https://github.com/spatie/laravel-permission/issues",
+                "source": "https://github.com/spatie/laravel-permission/tree/6.21.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/spatie",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-07-23T16:08:05+00:00"
         },
         {
             "name": "symfony/clock",

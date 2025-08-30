@@ -15,8 +15,8 @@ return new class extends Migration {
             $table->string('job_giver');
             $table->text('tools_and_materials')->nullable();
             $table->text('description')->nullable();
-            $table->timestamp('start_time');
-            $table->timestamp('end_time');
+            $table->timestamp('start_time')->nullable();
+            $table->timestamp('end_time')->nullable();
             $table->timestamps();
         });
     }

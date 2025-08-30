@@ -2,12 +2,99 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Job;
 use Illuminate\Http\Request;
 
 class JobController extends Controller {
-    public function viewCalendar() {
+    public function deliver() {
+        $jobs = Job::where('job_giver', auth()->id())->get();
+        $departments = Department::all(); // untuk dropdown target dept
+
+        return view('pages.deliver-job', compact('jobs', 'departments'));
+    }
+
+    // Simpan Job Baru
+    public function store(Request $request) {
+        $request->validate([
+            'title'               => 'required|string|max:255',
+            'description'         => 'nullable|string',
+            'job_giver'           => 'required|integer|exists:users,id',
+            'department_target_id' => 'required|integer|exists:departments,id',
+            'status'              => 'in:pending,on_process,done'
+        ]);
+
+        $job = new Job();
+        $job->title                = $request->title;
+        $job->description          = $request->description;
+        $job->job_giver            = $request->job_giver;
+        $job->department_target_id = $request->department_target_id;
+        $job->status               = 'pending'; // override biar aman
+
+        // bagian penerima → null dulu
+        $job->tools_and_materials  = null;
+        $job->start_time           = null;
+        $job->end_time             = null;
+
+        $job->save();
+
+        return redirect()->route('jobs.deliver')->with('success', 'Job berhasil ditambahkan!');
+    }
+
+    public function update(Request $request, Job $job) {
+        $request->validate([
+            'title'                => 'required|string|max:255',
+            'description'          => 'nullable|string',
+            'department_target_id' => 'required|integer|exists:departments,id',
+            'status'               => 'in:pending,on_process,done',
+            'tools_and_materials'  => 'nullable|string',
+            'start_time'           => 'nullable|date',
+            'end_time'             => 'nullable|date|after_or_equal:start_time',
+            'redirect_to'          => 'nullable|string'
+        ]);
+
+        // Update fields
+        $job->title                = $request->title;
+        $job->description          = $request->description;
+        $job->department_target_id = $request->department_target_id;
+        $job->status               = $request->status ?? $job->status;
+        $job->tools_and_materials  = $request->tools_and_materials;
+        $job->start_time           = $request->start_time;
+        $job->end_time             = $request->end_time;
+
+        $job->save();
+
+        // Tentukan redirect, default ke deliver
+        $redirectRoute = $request->redirect_to ?? 'jobs.deliver';
+
+        return redirect()->route($redirectRoute)->with('success', 'Job berhasil diperbarui!');
+    }
+
+    public function destroy(Job $job) {
+        $job->delete();
+        return redirect()->back()->with('success', 'Job berhasil dihapus!');
+    }
+
+
+    // public function received() {
+    //     $userDeptId = auth()->user()->department_id;
+    //     $receivedJobs = Job::where('department_target_id', $userDeptId)->get();
+    //     $assignedJobs = $receivedJobs->filter(fn($job) => $job->start_time && $job->end_time);
+    //     $unassignedJobs = $receivedJobs->filter(fn($job) => !$job->start_time && !$job->end_time);
+    //     $departments = Department::all();
+    //     return view('pages.job-received', compact('unassignedJobs', 'assignedJobs', 'departments'));
+    // }
+    public function received() {
+        $userDeptId = auth()->user()->department_id;
+        $receivedJobs = Job::where('department_target_id', $userDeptId)->get();
+        $assignedJobs = []; // bisa ambil jobs yang sudah dijadwalkan ke fullcalendar
+        return view('pages.job-received', compact('receivedJobs', 'assignedJobs'));
+    }
+
+
+
+    /*public function viewCalendar() {
         // Semua karyawan → untuk pemberi job (job_giver)
         $allKaryawan = Employee::select('id', 'nik', 'enroll_id', 'name', 'kd_bagian')->get();
 
@@ -104,5 +191,5 @@ class JobController extends Controller {
         $task->delete();
 
         return response()->json(['message' => 'task deleted']);
-    }
+    }*/
 }

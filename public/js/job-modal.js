@@ -1,0 +1,89 @@
+(function () {
+    "use strict";
+
+    function getEl(id) {
+        return document.getElementById(id);
+    }
+
+    function showModal() {
+        const modalEl = getEl("jobModal");
+        if (!modalEl) {
+            console.error("jobModal element not found in DOM");
+            return null;
+        }
+        return new bootstrap.Modal(modalEl);
+    }
+
+    // Tambah Job
+    window.openAddJobModal = function () {
+        try {
+            const modal = showModal();
+            if (!modal) return;
+
+            getEl("jobModalTitle").innerText = "Tambah Job";
+
+            const form = getEl("jobForm");
+            form.setAttribute("action", form.dataset.routeStore); // route store
+            getEl("jobFormMethod").value = "POST";
+
+            // reset fields
+            getEl("jobTitle").value = "";
+            getEl("jobDescription").value = "";
+            getEl("jobDepartment").value = "";
+            if (getEl("jobStatus")) getEl("jobStatus").value = "pending";
+            if (getEl("jobStatusText"))
+                getEl("jobStatusText").value = "pending";
+            getEl("jobModalSubmit").innerText = "Simpan";
+
+            modal.show();
+        } catch (err) {
+            console.error("openAddJobModal error:", err);
+        }
+    };
+
+    // Edit Job
+    window.openEditJobModal = function (job) {
+        try {
+            if (!job || typeof job !== "object") {
+                console.error("openEditJobModal requires a job object");
+                return;
+            }
+
+            const modal = showModal();
+            if (!modal) return;
+
+            getEl("jobModalTitle").innerText = "Edit Job";
+
+            const form = getEl("jobForm");
+
+            // Dapatkan route template dari dataset, ganti :id dengan job.id
+            let routeTemplate = form.dataset.routeUpdate; // misal: "/jobs/:id"
+            let actionUrl = routeTemplate.replace(":id", job.id);
+            form.setAttribute("action", actionUrl);
+
+            getEl("jobFormMethod").value = "PUT";
+
+            getEl("jobTitle").value = job.title || "";
+            getEl("jobDescription").value = job.description || "";
+            getEl("jobDepartment").value = job.department_target_id || "";
+            if (getEl("jobStatus"))
+                getEl("jobStatus").value = job.status || "pending";
+            if (getEl("jobStatusText"))
+                getEl("jobStatusText").value = job.status || "pending";
+            getEl("jobModalSubmit").innerText = "Update";
+
+            modal.show();
+        } catch (err) {
+            console.error("openEditJobModal error:", err);
+        }
+    };
+
+    // debug: pastikan modal ada saat DOM ready
+    document.addEventListener("DOMContentLoaded", function () {
+        if (!getEl("jobModal")) {
+            console.warn(
+                "jobModal not found in DOM — include <x-job-modal /> in your blade"
+            );
+        }
+    });
+})();
