@@ -94,13 +94,20 @@
                        data-bs-toggle="dropdown"
                        aria-expanded="false">
                         <i class="fas fa-user-circle fa-xl me-2"></i>
-                        <span>Username</span>
+                        {{-- <span>Username</span> --}}
+                        <span>{{ auth()->user()->username }}</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         <li><a class="dropdown-item" href="#">Profile</a></li>
                         <li><a class="dropdown-item" href="#">Settings</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="#">Logout</a></li>
+                        {{-- <li><a class="dropdown-item text-danger" href="{{ route('logout') }}">Logout</a></li> --}}
+                        <li>
+                            <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="dropdown-item text-danger">Logout</button>
+                            </form>
+                        </li>
                     </ul>
                 </li>
             </ul>

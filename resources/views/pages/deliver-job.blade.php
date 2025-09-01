@@ -8,9 +8,6 @@
 
     <!-- Toggle View -->
     <div class="mb-3 d-flex justify-content-between">
-        {{-- <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addJobModal">
-            + Tambah Job
-        </button> --}}
         <button class="btn btn-success" onclick="openAddJobModal()">+ Tambah Job</button>
 
         <div class="btn-group" role="group" aria-label="View Toggle">
@@ -100,90 +97,8 @@
     </div>
 </div>
 
-{{-- <div class="modal fade" id="addJobModal" tabindex="-1">
-    <div class="modal-dialog"> <!-- bisa tambah in modal -lg biar lebih luas -->
-        <form method="POST" action="{{ route('jobs.store') }}">
-            @csrf
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Tambah Job</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Hidden fields -->
-                    <input type="hidden" name="job_giver" value="{{ auth()->id() }}">
-                    <input type="hidden" name="status" value="pending">
-
-                    <!-- Department Target -->
-                    <div class="mb-3">
-                        <label>Department Tujuan</label>
-                        <select name="department_target_id" class="form-select" required>
-                            <option value="">-- Pilih Department --</option>
-                            @foreach($departments as $dept)
-                            <option value="{{ $dept->id }}">{{ $dept->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    
-                    <!-- Pemberi Job -->
-                    <div class="mb-3">
-                        <label>Pemberi Job</label>
-                        <input type="text" class="form-control" value="{{ auth()->user()->id }}" readonly>
-                    </div>
-
-                    <!-- Title -->
-                    <div class="mb-3">
-                        <label>Judul</label>
-                        <input type="text" name="title" class="form-control" required>
-                    </div>
-
-                    <!-- Deskripsi -->
-                    <div class="mb-3">
-                        <label>Deskripsi</label>
-                        <textarea name="description" class="form-control" required></textarea>
-                    </div>
-
-                    <!-- Status Job (Dropdown tapi disabled) -->
-                    <div class="mb-3">
-                        <label>Status Job</label>
-                        <select class="form-select" disabled>
-                            <option value="pending" selected>Pending</option>
-                        </select>
-                    </div>
-
-                    <!-- Pengambil Job (disabled) -->
-                    <div class="mb-3">
-                        <label>Pengambil Job</label>
-                        <input type="text" class="form-control" disabled placeholder="Menunggu penerima">
-                    </div>
-
-                    <!-- Alat & Bahan (disabled) -->
-                    <div class="mb-3">
-                        <label>Alat & Bahan</label>
-                        <textarea class="form-control" disabled placeholder="Menunggu penerima"></textarea>
-                    </div>
-
-                    <!-- Waktu Mulai & Selesai (disabled) -->
-                    <div class="mb-3">
-                        <label>Waktu Mulai</label>
-                        <input type="datetime-local" class="form-control" disabled>
-                    </div>
-                    <div class="mb-3">
-                        <label>Waktu Selesai</label>
-                        <input type="datetime-local" class="form-control" disabled>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-success">Simpan</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div> --}}
-
 {{-- MODAL JOB COMPONENT --}}
-<x-job-modal :departments="$departments" />
+<x-job-modal :departments="$departments" mode="giver"/>
 @endsection
 
 @section('script')

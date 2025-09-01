@@ -18,11 +18,11 @@ class JobController extends Controller {
     // Simpan Job Baru
     public function store(Request $request) {
         $request->validate([
-            'title'               => 'required|string|max:255',
-            'description'         => 'nullable|string',
-            'job_giver'           => 'required|integer|exists:users,id',
+            'title'                => 'required|string|max:255',
+            'description'          => 'nullable|string',
+            'job_giver'            => 'required|integer|exists:users,id',
             'department_target_id' => 'required|integer|exists:departments,id',
-            'status'              => 'in:pending,on_process,done'
+            'status'               => 'in:pending,on_process,done'
         ]);
 
         $job = new Job();
@@ -76,23 +76,67 @@ class JobController extends Controller {
         return redirect()->back()->with('success', 'Job berhasil dihapus!');
     }
 
-
-    // public function received() {
-    //     $userDeptId = auth()->user()->department_id;
-    //     $receivedJobs = Job::where('department_target_id', $userDeptId)->get();
-    //     $assignedJobs = $receivedJobs->filter(fn($job) => $job->start_time && $job->end_time);
-    //     $unassignedJobs = $receivedJobs->filter(fn($job) => !$job->start_time && !$job->end_time);
-    //     $departments = Department::all();
-    //     return view('pages.job-received', compact('unassignedJobs', 'assignedJobs', 'departments'));
-    // }
     public function received() {
+        $departments = Department::all();
         $userDeptId = auth()->user()->department_id;
-        $receivedJobs = Job::where('department_target_id', $userDeptId)->get();
-        $assignedJobs = []; // bisa ambil jobs yang sudah dijadwalkan ke fullcalendar
-        return view('pages.job-received', compact('receivedJobs', 'assignedJobs'));
+
+        // list kiri: pending & on_process
+        $receivedJobs = Job::where('department_target_id', $userDeptId)
+            ->where('status', '!=', 'done')
+            ->get();
+
+        // events di calendar
+        $assignedJobs = Job::where('department_target_id', $userDeptId)
+            ->whereNotNull('start_time')
+            ->whereIn('status', ['pending', 'on_process'])
+            ->get()
+            ->map(function ($job) {
+                return [
+                    'id'    => $job->id,
+                    'title' => $job->title,
+                    'start' => $job->start_time,
+                    'end'   => $job->end_time,
+                    'job'   => [
+                        'id' => $job->id,
+                        'title' => $job->title,
+                        'description' => $job->description,
+                        'job_giver' => $job->job_giver,
+                        'job_receiver' => $job->job_receiver,
+                        'status' => $job->status,   // pastikan ini ikut
+                        'start_time' => $job->start_time,
+                        'end_time' => $job->end_time,
+                    ],
+                ];
+            });
+
+
+        // job history: status done
+        $jobHistory = Job::where('department_target_id', $userDeptId)
+            ->where('status', 'done')
+            ->get();
+
+        return view('pages.job-received', compact('receivedJobs', 'assignedJobs', 'jobHistory', 'departments'));
     }
 
+    public function updateTime(Request $request, Job $job) {
+        // dd($job);
+        $request->validate([
+            'start_time' => 'required|date',
+            'end_time'   => 'nullable|date|after_or_equal:start_time',
+        ]);
 
+        $job->start_time = $request->start_time;
+        $job->end_time   = $request->end_time;
+
+        // kalau status pending, ubah ke on_process
+        if ($job->status === 'pending') {
+            $job->status = 'on_process';
+        }
+
+        $job->save();
+
+        return response()->json(['success' => true, 'job' => $job]);
+    }
 
     /*public function viewCalendar() {
         // Semua karyawan → untuk pemberi job (job_giver)

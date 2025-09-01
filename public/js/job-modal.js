@@ -42,7 +42,7 @@
     };
 
     // Edit Job
-    window.openEditJobModal = function (job) {
+    /*window.openEditJobModal = function (job) {
         try {
             if (!job || typeof job !== "object") {
                 console.error("openEditJobModal requires a job object");
@@ -66,10 +66,55 @@
             getEl("jobTitle").value = job.title || "";
             getEl("jobDescription").value = job.description || "";
             getEl("jobDepartment").value = job.department_target_id || "";
+            getEl("jobGiverText").value = job.job_giver || "";
             if (getEl("jobStatus"))
                 getEl("jobStatus").value = job.status || "pending";
             if (getEl("jobStatusText"))
                 getEl("jobStatusText").value = job.status || "pending";
+            getEl("jobModalSubmit").innerText = "Update";
+
+            modal.show();
+        } catch (err) {
+            console.error("openEditJobModal error:", err);
+        }
+    };*/
+    window.openEditJobModal = function (job) {
+        try {
+            if (!job || typeof job !== "object") {
+                console.error("openEditJobModal requires a job object");
+                return;
+            }
+
+            const modal = showModal();
+            if (!modal) return;
+
+            getEl("jobModalTitle").innerText = "Edit Job";
+
+            const form = getEl("jobForm");
+
+            // Action URL
+            let routeTemplate = form.dataset.routeUpdate; // "/jobs/:id"
+            let actionUrl = routeTemplate.replace(":id", job.id);
+            form.setAttribute("action", actionUrl);
+
+            // Ubah method jadi PUT
+            getEl("jobFormMethod").value = "PUT";
+
+            // Isi field sesuai fillable
+            getEl("jobTitle").value = job.title || "";
+            getEl("jobGiverText").value = job.job_giver || "";
+            getEl("jobTools").value = job.tools_and_materials || "";
+            getEl("jobDescription").value = job.description || "";
+            getEl("jobStartTime").value = job.start_time || "";
+            getEl("jobEndTime").value = job.end_time || "";
+            getEl("jobDepartment").value = job.department_target_id || "";
+            if (getEl("jobStatus")) {
+                getEl("jobStatus").value = job.status;
+            }
+            if (getEl("jobStatusText")) {
+                getEl("jobStatusText").value = job.status;
+            }
+            // Tombol submit
             getEl("jobModalSubmit").innerText = "Update";
 
             modal.show();

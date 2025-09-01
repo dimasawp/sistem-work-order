@@ -18,3 +18,5 @@ use Illuminate\Support\Facades\Route;
 Route::post('/jobs/store', [JobController::class, 'store'])->name('jobs.store');
 Route::put('/jobs/{job}', [JobController::class, 'update'])->name('jobs.update');
 Route::delete('/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
+Route::post('/jobs/{job}/update-time', [JobController::class, 'updateTime'])->name('jobs.updateTime');
+// Route::post('/jobs/{job}/update-time', [JobController::class, 'updateTime'])->name('jobs.updateTime');
