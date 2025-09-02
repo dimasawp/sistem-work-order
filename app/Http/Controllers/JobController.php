@@ -76,7 +76,7 @@ class JobController extends Controller {
         return redirect()->back()->with('success', 'Job berhasil dihapus!');
     }
 
-    public function received() {
+    /*public function received() {
         $departments = Department::all();
         $userDeptId = auth()->user()->department_id;
 
@@ -97,25 +97,85 @@ class JobController extends Controller {
                     'start' => $job->start_time,
                     'end'   => $job->end_time,
                     'job'   => [
-                        'id' => $job->id,
-                        'title' => $job->title,
-                        'description' => $job->description,
-                        'job_giver' => $job->job_giver,
-                        'job_receiver' => $job->job_receiver,
-                        'status' => $job->status,   // pastikan ini ikut
-                        'start_time' => $job->start_time,
-                        'end_time' => $job->end_time,
+                        'id'                   => $job->id,
+                        'title'                => $job->title,
+                        'description'          => $job->description,
+                        'job_giver'            => $job->job_giver,
+                        'tools_and_materials'  => $job->tools_and_materials,
+                        'start_time'           => $job->start_time,
+                        'end_time'             => $job->end_time,
+                        'department_target_id' => $job->department_target_id,
+                        'status'               => $job->status,
                     ],
                 ];
             });
-
 
         // job history: status done
         $jobHistory = Job::where('department_target_id', $userDeptId)
             ->where('status', 'done')
             ->get();
 
-        return view('pages.job-received', compact('receivedJobs', 'assignedJobs', 'jobHistory', 'departments'));
+        $departmentEmployees = Employee::whereHas('subDepartment.departments', function ($q) use ($userDeptId) {
+            $q->where('departments.id', $userDeptId);
+        })
+            ->with('subDepartment')
+            ->get(['id', 'nik', 'name']); // cukup field yang perlu
+
+        return view('pages.job-received', compact('receivedJobs', 'assignedJobs', 'jobHistory', 'departments', 'departmentEmployees'));
+    }*/
+
+    public function received() {
+        $departments = Department::all();
+        $userDeptId = auth()->user()->department_id;
+
+        // list kiri: pending & on_process
+        $receivedJobs = Job::where('department_target_id', $userDeptId)
+            ->where('status', '!=', 'done')
+            ->get();
+
+        // events di calendar
+        $assignedJobs = Job::where('department_target_id', $userDeptId)
+            ->whereNotNull('start_time')
+            ->whereIn('status', ['pending', 'on_process'])
+            ->get()
+            ->map(function ($job) {
+                return [
+                    'id' => $job->id,
+                    'title' => $job->title,
+                    'start' => $job->start_time,
+                    'end' => $job->end_time,
+                    'job' => $job,
+                ];
+            });
+
+        // job history: status done
+        $jobHistory = Job::where('department_target_id', $userDeptId)
+            ->where('status', 'done')
+            ->get();
+
+        // **PENTING: panggil ->get() untuk ambil collection**
+        $departmentEmployees = Employee::whereHas('subDepartment.departments', function ($q) use ($userDeptId) {
+            $q->where('departments.id', $userDeptId);
+        })->with('subDepartment')->get();
+
+        // kalau mau kirim versi ringan untuk JS:
+        $employeesForJs = $departmentEmployees->map(function ($e) {
+            return [
+                'id' => $e->id,
+                'nik' => $e->nik,
+                'name' => $e->name,
+                'sub_department' => $e->subDepartment->name ?? null,
+            ];
+        })->values();
+
+        return view('pages.job-received', compact(
+            'receivedJobs',
+            'assignedJobs',
+            'jobHistory',
+            'departments',
+            'departmentEmployees',
+            'employeesForJs'
+        ));
     }
 
     public function updateTime(Request $request, Job $job) {
@@ -137,6 +197,17 @@ class JobController extends Controller {
 
         return response()->json(['success' => true, 'job' => $job]);
     }
+
+    public function history() {
+        $userDeptId = auth()->user()->department_id;
+
+        $jobHistory = Job::where('department_target_id', $userDeptId)
+            ->where('status', 'done')
+            ->get();
+
+        return view('pages.job-history', compact('jobHistory'));
+    }
+
 
     /*public function viewCalendar() {
         // Semua karyawan → untuk pemberi job (job_giver)

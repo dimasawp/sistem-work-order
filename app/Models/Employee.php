@@ -16,6 +16,18 @@ class Employee extends Model {
         'position',
     ];
 
+    public function departments() {
+        return $this->hasManyThrough(
+            Department::class,
+            SubDepartment::class,
+            'id',                  // FK di sub_departments
+            'id',                  // FK di departments
+            'sub_department_id',   // FK di employees
+            'id'                   // local key di sub_departments
+        );
+    }
+
+
     public function subDepartment() {
         return $this->belongsTo(SubDepartment::class);
     }
@@ -24,17 +36,11 @@ class Employee extends Model {
         return $this->hasOne(User::class, 'nik', 'nik');
     }
 
-    /**
-     * Jobs yang diterima oleh employee ini
-     */
     public function jobs() {
         return $this->belongsToMany(Job::class, 'job_receivers', 'employee_id', 'job_id')
             ->withTimestamps();
     }
 
-    /**
-     * (Opsional) jobs yang diberikan oleh employee ini
-     */
     public function givenJobs() {
         return $this->hasMany(Job::class, 'employee_id');
     }

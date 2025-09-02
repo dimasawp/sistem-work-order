@@ -1,5 +1,8 @@
 @extends('layouts.app')
 
+@section('title', 'Dashboard')
+@section('page-name', 'Dashboard')
+
 @section('content')
 <div class="p-4">
     <h3 class="mb-3">Dashboard</h3>

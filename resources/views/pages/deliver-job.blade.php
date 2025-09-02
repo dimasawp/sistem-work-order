@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Deliver Job')
+@section('page-name', 'Deliver Job')
 
 @section('content')
 <div class="p-4">

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Job Received')
+@section('page-name', 'Job Received')
 
 @section('content')
     <div class="p-4">
@@ -8,7 +9,7 @@
 
         <div class="d-flex flex-row gap-4" style="height: 80vh">
             <div class="w-35" style="flex: 0 0 25%; overflow-y: auto;">
-                <h6 class="text-secondary mt-2 mb-3">Unassign Jobs/New Jobs</h6>
+                <h6 class="text-secondary mt-2 mb-3">Unassign Jobs/On Process Jobs</h6>
                 <ul class="list-group" id="jobList">
                     @forelse($receivedJobs as $job)
                         <li class="list-group-item d-flex justify-content-between align-items-center"
@@ -28,46 +29,6 @@
 
             <div id="calendar" style="flex: 1; background: #fff;" class="rounded border p-2"></div>
         </div>
-
-        {{-- Bagian tabel job history. --}}
-        <div class="mt-5">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5>Job History</h5>
-                <button class="btn btn-sm btn-success">
-                    <i class="fas fa-file-excel"></i> Export Excel
-                </button>
-            </div>
-
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Judul</th>
-                        <th>Deskripsi</th>
-                        <th>Pemberi Job</th>
-                        <th>Status</th>
-                        <th>Waktu Mulai</th>
-                        <th>Waktu Selesai</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($jobHistory as $job)
-                        <tr>
-                            <td>{{ $job->title }}</td>
-                            <td>{{ $job->description }}</td>
-                            <td>{{ $job->giver->name ?? '-' }}</td>
-                            <td>{{ ucfirst($job->status) }}</td>
-                            <td>{{ $job->start_time }}</td>
-                            <td>{{ $job->end_time }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-muted text-center">Belum ada job selesai.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
     </div>
 
     {{-- MODAL JOB COMPONENT --}}
@@ -92,7 +53,7 @@
                 editable: true,
                 events: @json($assignedJobs),
                 eventDisplay: 'block',
-                eventTimeFormat: { 
+                eventTimeFormat: {
                     hour: '2-digit',
                     minute: '2-digit',
                     hour12: false
@@ -106,12 +67,16 @@
                     today: 'Today',
                     year: 'Year',
                     month: 'Month',
-                    list:  'List'
+                    list: 'List'
                 },
                 views: {
                     listMonth: {
                         displayEventTime: true,
-                        eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false }
+                        eventTimeFormat: {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                        }
                     }
                 },
                 eventClick: function(info) {
@@ -128,67 +93,142 @@
                     let jobId = info.event.id;
                     let start = info.event.startStr; // pakai startStr biar tidak geser timezone
 
-                    if (!confirm("Apakah kamu yakin ingin menempatkan job ini di tanggal " + start + "?")) {
+                    if (!confirm("Apakah kamu yakin ingin menempatkan job ini di tanggal " + start +
+                            "?")) {
                         info.revert();
                         return;
                     }
 
                     fetch(`/api/jobs/${jobId}/update-time`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            start_time: start,
-                            end_time: null
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                start_time: start,
+                                end_time: null
+                            })
                         })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (!data.success) {
-                            alert("Gagal update job!");
-                            info.revert();
-                        } else {
-                            calendar.refetchEvents(); // refresh event biar langsung muncul
-                        }
-                    })
-                    .catch(() => info.revert());
+                        .then(res => res.json())
+                        .then(data => {
+                            if (!data.success) {
+                                alert("Gagal update job!");
+                                info.revert();
+                            } else {
+                                calendar.refetchEvents(); // refresh event biar langsung muncul
+                            }
+                        })
+                        .catch(() => info.revert());
                 },
                 eventDrop: function(info) {
                     let jobId = info.event.id;
                     let start = info.event.startStr;
                     let end = info.event.endStr;
 
-                    if (!confirm("Apakah kamu yakin ingin memindahkan job ini ke tanggal " + start + "?")) {
+                    if (!confirm("Apakah kamu yakin ingin memindahkan job ini ke tanggal " + start +
+                            "?")) {
                         info.revert();
                         return;
                     }
 
                     fetch(`/api/jobs/${jobId}/update-time`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            start_time: start,
-                            end_time: end
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                start_time: start,
+                                end_time: end
+                            })
                         })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (!data.success) {
-                            alert("Gagal update job!");
-                            info.revert();
-                        } else {
-                            calendar.refetchEvents(); // refresh event biar langsung muncul
-                        }
-                    })
-                    .catch(() => info.revert());
+                        .then(res => res.json())
+                        .then(data => {
+                            if (!data.success) {
+                                alert("Gagal update job!");
+                                info.revert();
+                            } else {
+                                calendar.refetchEvents(); // refresh event biar langsung muncul
+                            }
+                        })
+                        .catch(() => info.revert());
                 }
             });
             calendar.render();
         });
     </script>
+    <script>
+        const allEmployees = @json($employeesForJs ?? []);
+        console.log(allEmployees);
+        // data berisi {id, nik, name, kd_bagian}
+
+        const searchInput = document.getElementById('employee_search');
+        const suggestionBox = document.getElementById('employeeSuggestions');
+        const selectedBox = document.getElementById('selectedEmployees');
+        const hiddenInput = document.getElementById('employee_ids');
+
+        let selectedEmployees = [];
+
+        function renderSelectedEmployees() {
+            selectedBox.innerHTML = '';
+            selectedEmployees.forEach(emp => {
+                const badge = document.createElement('span');
+                badge.classList.add('badge', 'bg-primary', 'd-flex', 'align-items-center');
+                badge.style.gap = '6px';
+                badge.innerHTML = `${emp.nik} - ${emp.name} 
+                <button type="button" class="btn-close btn-close-white btn-sm ms-1" aria-label="Remove"></button>`;
+
+                badge.querySelector('button').addEventListener('click', () => {
+                    selectedEmployees = selectedEmployees.filter(e => e.id !== emp.id);
+                    updateHiddenInput();
+                    renderSelectedEmployees();
+                });
+
+                selectedBox.appendChild(badge);
+            });
+        }
+
+        function updateHiddenInput() {
+            hiddenInput.value = JSON.stringify(selectedEmployees.map(e => e.id));
+        }
+
+        function showSuggestions(keyword) {
+            suggestionBox.innerHTML = '';
+            if (!keyword) return;
+
+            const filtered = allEmployees.filter(e =>
+                e.nik.includes(keyword) || e.name.toLowerCase().includes(keyword.toLowerCase())
+            );
+
+            filtered.forEach(e => {
+                const div = document.createElement('div');
+                div.classList.add('list-group-item', 'list-group-item-action');
+                div.textContent = `${e.nik} - ${e.name}`;
+
+                div.addEventListener('click', () => {
+                    if (!selectedEmployees.find(emp => emp.id === e.id)) {
+                        selectedEmployees.push(e);
+                        updateHiddenInput();
+                        renderSelectedEmployees();
+                    }
+                    searchInput.value = '';
+                    suggestionBox.innerHTML = '';
+                });
+
+                suggestionBox.appendChild(div);
+            });
+        }
+
+        searchInput.addEventListener('input', () => {
+            showSuggestions(searchInput.value);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!suggestionBox.contains(e.target) && e.target !== searchInput) {
+                suggestionBox.innerHTML = '';
+            }
+        });
+    </script>
+
 @endsection

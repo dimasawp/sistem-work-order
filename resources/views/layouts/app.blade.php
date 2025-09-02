@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ config('app.name', 'Laravel App') }}</title>
-    {{-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"> --}}
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
 
@@ -41,7 +41,8 @@
 <body>
     {{-- Sidebar --}}
     <div class="sidebar d-flex flex-column p-3">
-        <h4 class="text-white mb-4">{{ config('app.name', 'Job System') }}</h4>
+        {{-- <h4 class="text-white mb-4">{{ config('app.name', 'Job System') }}</h4> --}}
+        <h4 class="text-white mb-4">GAWE'!</h4>
         <ul class="nav nav-pills flex-column mb-auto">
             <li class="nav-item">
                 <a href="{{ route('dashboard') }}" 
@@ -59,6 +60,18 @@
                 <a href="{{ route('jobs.received') }}" 
                 class="nav-link {{ request()->routeIs('jobs.received') ? 'active' : '' }}">
                     Jobs Received
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('jobs.history') }}" 
+                class="nav-link {{ request()->routeIs('jobs.history') ? 'active' : '' }}">
+                    Jobs History
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('employees') }}" 
+                class="nav-link {{ request()->routeIs('employees') ? 'active' : '' }}">
+                    Employee List
                 </a>
             </li>
         </ul>
@@ -80,7 +93,7 @@
             {{-- Left side: breadcrumbs --}}
             <div class="d-flex align-items-center">
                 <span class="me-2 text-muted">Pages /</span>
-                <span class="fw-semibold">Dashboard</span>
+                <span class="fw-semibold">@yield('page-name')</span>
                 <!-- nanti bagian ini bisa dibuat dinamis pakai yield atau variable -->
             </div>
 
@@ -101,7 +114,6 @@
                         <li><a class="dropdown-item" href="#">Profile</a></li>
                         <li><a class="dropdown-item" href="#">Settings</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        {{-- <li><a class="dropdown-item text-danger" href="{{ route('logout') }}">Logout</a></li> --}}
                         <li>
                             <form action="{{ route('logout') }}" method="POST" class="d-inline">
                                 @csrf
@@ -119,7 +131,6 @@
 </div>
 
 
-    {{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script> --}}
     <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     @livewireScripts
 </body>
