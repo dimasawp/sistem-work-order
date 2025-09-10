@@ -1,11 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'Employee List')
-@section('page-name', 'Employee List')
+{{-- @section('title', 'Employee List') --}}
+@section('title', 'Daftar Karyawan')
+{{-- @section('page-name', 'Employee List') --}}
+@section('page-name', 'Daftar Karyawan')
 
 @section('content')
     <div class="p-4">
-        <h3 class="mb-3">Employee List</h3>
+        {{-- <h3 class="mb-3">Employee List</h3> --}}
+        <h3 class="mb-3">Daftar Karyawan</h3>
 
         <div class="mb-3">
             <form id="sync-form" action="{{ route('employees.sync') }}" method="POST" class="mb-3">
@@ -22,32 +25,6 @@
             </form>
         </div>
 
-        {{-- <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>NIK</th>
-                    <th>Enroll ID</th>
-                    <th>Nama</th>
-                    <th>Sub Department</th>
-                    <th>Posisi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($employees as $employee)
-                    <tr>
-                        <td>{{ $employee->nik }}</td>
-                        <td>{{ $employee->enroll_id }}</td>
-                        <td>{{ $employee->name }}</td>
-                        <td>{{ $employee->subDepartment->name ?? '-' }}</td>
-                        <td>{{ $employee->position }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="text-center">Belum ada data karyawan</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table> --}}
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -75,7 +52,6 @@
             </tbody>
         </table>
 
-        {{-- Pagination --}}
         <div class="d-flex justify-content-end mt-3">
             {{ $employees->links('pagination::bootstrap-4') }}
         </div>
@@ -83,8 +59,8 @@
     </div>
 
     <script>
+        // Animasi Icon Berputar
         document.getElementById('sync-form').addEventListener('submit', function(event) {
-            // document.getElementById('sync-icon').classList.add('icon-rotate');
             document.getElementById('sync-icon').classList.add('fa-spin');
             document.getElementById('sync-button').disabled = true;
         });

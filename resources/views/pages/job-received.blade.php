@@ -1,11 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'Job Received')
-@section('page-name', 'Job Received')
+{{-- @section('title', 'Job Received') --}}
+@section('title', 'Job Masuk')
+{{-- @section('page-name', 'Job Received') --}}
+@section('page-name', 'Job Masuk')
 
 @section('content')
     <div class="p-4">
-        <h3 class="mb-3">Job Received</h3>
+        {{-- <h3 class="mb-3">Job Received</h3> --}}
+        <h3 class="mb-3">Job Masuk</h3>
 
         <div class="d-flex flex-row gap-4" style="height: 80vh">
             <div class="w-35" style="flex: 0 0 25%; overflow-y: auto;">
@@ -15,7 +18,8 @@
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             data-event='@json(['id' => $job->id, 'title' => $job->title, 'job' => $job])'>
                             <span>
-                                <strong>{{ $job->title }}</strong> - {{ $job->status }}
+                                <strong>{{ $job->title }}</strong> - <span
+                                    class="badge {{ $job->status == 'pending' ? 'bg-secondary' : ($job->status == 'on_process' ? 'bg-warning' : 'bg-danger') }}">{{ $job->status }}</span>
                             </span>
                             <button class="btn btn-sm btn-warning" onclick='openEditJobModal(@json($job))'>
                                 <i class="fas fa-pencil-alt"></i>
@@ -82,6 +86,7 @@
                 eventClick: function(info) {
                     // kalau job lengkap sudah dipass dari server
                     let job = info.event.extendedProps.job;
+                    // console.log(job)
                     if (job) {
                         // console.log(job.status);
                         openEditJobModal(job);
@@ -116,6 +121,15 @@
                                 alert("Gagal update job!");
                                 info.revert();
                             } else {
+                                // update data job langsung di extendedProps biar modal kebaca
+                                let ev = info.event;
+                                if (ev.extendedProps.job) {
+                                    ev.extendedProps.job.start_time = start;
+                                    ev.extendedProps.job.end_time = null;
+                                }
+                                ev.setStart(start);
+                                ev.setEnd(null);
+
                                 calendar.refetchEvents(); // refresh event biar langsung muncul
                             }
                         })
@@ -149,6 +163,15 @@
                                 alert("Gagal update job!");
                                 info.revert();
                             } else {
+                                // update data job langsung di extendedProps biar modal kebaca
+                                let ev = info.event;
+                                if (ev.extendedProps.job) {
+                                    ev.extendedProps.job.start_time = start;
+                                    ev.extendedProps.job.end_time = end;
+                                }
+                                ev.setStart(start);
+                                ev.setEnd(end);
+
                                 calendar.refetchEvents(); // refresh event biar langsung muncul
                             }
                         })
@@ -160,39 +183,48 @@
     </script>
     <script>
         const allEmployees = @json($employeesForJs ?? []);
-        console.log(allEmployees);
-        // data berisi {id, nik, name, kd_bagian}
+        // console.log(allEmployees);
 
         const searchInput = document.getElementById('employee_search');
         const suggestionBox = document.getElementById('employeeSuggestions');
         const selectedBox = document.getElementById('selectedEmployees');
-        const hiddenInput = document.getElementById('employee_ids');
+        const form = document.getElementById('jobForm'); // ambil form biar bisa inject input
 
         let selectedEmployees = [];
 
+        // Render chip + hidden inputs
         function renderSelectedEmployees() {
             selectedBox.innerHTML = '';
+
+            // Hapus semua hidden input lama
+            form.querySelectorAll('input[name="employee_ids[]"]').forEach(el => el.remove());
+
             selectedEmployees.forEach(emp => {
+                // buat chip
                 const badge = document.createElement('span');
                 badge.classList.add('badge', 'bg-primary', 'd-flex', 'align-items-center');
                 badge.style.gap = '6px';
                 badge.innerHTML = `${emp.nik} - ${emp.name} 
-                <button type="button" class="btn-close btn-close-white btn-sm ms-1" aria-label="Remove"></button>`;
+            <button type="button" class="btn-close btn-close-white btn-sm ms-1" aria-label="Remove"></button>`;
 
+                // hapus employee
                 badge.querySelector('button').addEventListener('click', () => {
                     selectedEmployees = selectedEmployees.filter(e => e.id !== emp.id);
-                    updateHiddenInput();
-                    renderSelectedEmployees();
+                    renderSelectedEmployees(); // refresh
                 });
 
                 selectedBox.appendChild(badge);
+
+                // buat hidden input per ID
+                const hidden = document.createElement('input');
+                hidden.type = "hidden";
+                hidden.name = "employee_ids[]";
+                hidden.value = emp.id;
+                form.appendChild(hidden);
             });
         }
 
-        function updateHiddenInput() {
-            hiddenInput.value = JSON.stringify(selectedEmployees.map(e => e.id));
-        }
-
+        // Suggestion box
         function showSuggestions(keyword) {
             suggestionBox.innerHTML = '';
             if (!keyword) return;
@@ -209,7 +241,6 @@
                 div.addEventListener('click', () => {
                     if (!selectedEmployees.find(emp => emp.id === e.id)) {
                         selectedEmployees.push(e);
-                        updateHiddenInput();
                         renderSelectedEmployees();
                     }
                     searchInput.value = '';
@@ -230,5 +261,8 @@
             }
         });
     </script>
-
+    <script>
+        window.jobs = @json($jobs);
+        const jobs = @json($jobs);
+    </script>
 @endsection

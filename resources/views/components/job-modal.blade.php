@@ -1,8 +1,8 @@
 @props(['departments', 'mode' => 'giver'])
-{{-- default giver biar gak error --}}
+{{-- default giver --}}
 
 <div class="modal fade" id="jobModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <form id="jobForm" method="POST" data-route-store="{{ route('jobs.store') }}"
             data-route-update="{{ route('jobs.update', ['job' => ':id']) }}">
             @csrf
@@ -15,86 +15,82 @@
                 </div>
 
                 <div class="modal-body">
-                    <!-- Job Giver (hidden untuk giver, text untuk receiver) -->
                     @if ($mode === 'giver')
                         <input type="hidden" name="job_giver" id="jobGiverHidden" value="{{ auth()->id() }}">
                         <input type="hidden" name="status" id="jobStatus" value="pending">
+                        <input type="hidden" name="redirect_to" value="jobs.deliver">
+                    @else
+                        <input type="hidden" name="redirect_to" value="jobs.received">
                     @endif
 
-                    <div class="mb-3">
-                        <label>Department Tujuan</label>
-                        <select name="department_target_id" id="jobDepartment" class="form-select"
-                            {{ $mode === 'receiver' ? 'disabled' : '' }} required>
-                            <option value="">-- Pilih Department --</option>
-                            @foreach ($departments as $dept)
-                                <option value="{{ $dept->id }}">{{ $dept->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                    <div class="row">
+                        <div class="col-6">
 
-                    <div class="mb-3">
-                        <label>Pemberi Job</label>
-                        <input type="text" id="jobGiverText" class="form-control"
-                            value="{{ $mode === 'giver' ? auth()->user()->id : '' }}"
-                            {{ $mode === 'receiver' ? 'disabled' : '' }}>
-                    </div>
+                            <div class="mb-3">
+                                <label>Department Tujuan</label>
+                                <select name="department_target_id" id="jobDepartment" class="form-select"
+                                    {{ $mode === 'receiver' ? 'disabled' : '' }} required>
+                                    <option value="">-- Pilih Department --</option>
+                                    @foreach ($departments as $dept)
+                                        <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label>Pemberi Job</label>
+                                <input type="text" id="jobGiverText" class="form-control"
+                                    value="{{ $mode === 'giver' ? auth()->user()->id : '' }}"
+                                    {{ $mode === 'receiver' ? 'disabled' : 'readonly' }}>
+                            </div>
+                            <div class="mb-3">
+                                <label>Judul</label>
+                                <input type="text" name="title" id="jobTitle" class="form-control"
+                                    {{ $mode === 'receiver' ? 'disabled' : '' }} required>
+                            </div>
+                            <div class="mb-3 d-flex flex-column">
+                                <label>Deskripsi</label>
+                                <textarea name="description" id="jobDescription" class="form-control flex-shrink-1" rows="6" {{ $mode === 'receiver' ? 'disabled' : '' }} required></textarea>
+                            </div>
 
-                    <div class="mb-3">
-                        <label>Judul</label>
-                        <input type="text" name="title" id="jobTitle" class="form-control"
-                            {{ $mode === 'receiver' ? 'disabled' : '' }} required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label>Deskripsi</label>
-                        <textarea name="description" id="jobDescription" class="form-control" {{ $mode === 'receiver' ? 'disabled' : '' }}
-                            required></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label>Status Job</label>
-                        <select name="status" id="jobStatusText" class="form-select"
-                            {{ $mode === 'giver' ? 'disabled' : '' }}>
-                            <option value="pending">Pending</option>
-                            <option value="on_process">On Process</option>
-                            <option value="done">Done</option>
-                        </select>
-                    </div>
-
-                    {{-- <div class="mb-3">
-                        <label>Pengambil Job</label>
-                        <input type="text" name="job_taker" id="jobTaker" class="form-control"
-                               {{ $mode === 'giver' ? 'disabled' : '' }}>
-                    </div> --}}
-                    {{-- PENGAMBIL JOB (Dropdown, nanti dynamic dari DB) --}}
-                    <div class="mb-3 position-relative">
-                        <label for="employee_search" class="form-label">Pengambil Job</label>
-                        <input type="text" class="form-control" id="employee_search" autocomplete="off"
-                            placeholder="Ketik nama / NIK...">
-                        <div id="employeeSuggestions" class="list-group position-absolute w-100" style="z-index: 1000;">
                         </div>
+                        <div class="col-6">
 
-                        <!-- Tempat menaruh chips/banner -->
-                        <div id="selectedEmployees" class="mt-2 d-flex flex-wrap gap-2"></div>
+                            <div class="mb-3">
+                                <label>Status Job</label>
+                                <select name="status" id="jobStatusText" class="form-select"
+                                    {{ $mode === 'giver' ? 'disabled' : '' }}>
+                                    <option value="pending">Pending</option>
+                                    <option value="on_process">On Process</option>
+                                    <option value="done">Done</option>
+                                </select>
+                            </div>
+                            <div class="mb-3 position-relative">
+                                <label for="employee_search" class="form-label">Pengambil Job</label>
+                                <input type="text" class="form-control" id="employee_search" autocomplete="off"
+                                    placeholder="Ketik nama / NIK..." {{ $mode === 'giver' ? 'disabled' : '' }}>
+                                <div id="employeeSuggestions" class="list-group position-absolute w-100"
+                                    style="z-index: 1000;">
+                                </div>
 
-                        <!-- Hidden input untuk simpan id karyawan ke form -->
-                        <input type="hidden" name="employee_ids[]" id="employee_ids">
-                    </div>
+                                <!-- Tempat menaruh chips/banner -->
+                                <div id="selectedEmployees" class="mt-2 d-flex flex-wrap gap-2"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label>Alat & Bahan</label>
+                                <textarea name="tools_and_materials" id="jobTools" class="form-control" {{ $mode === 'giver' ? 'disabled' : '' }}></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label>Waktu Mulai</label>
+                                <input type="datetime-local" name="start_time" id="jobStartTime" class="form-control"
+                                    {{ $mode === 'giver' ? 'disabled' : '' }}>
+                            </div>
+                            <div class="mb-3">
+                                <label>Waktu Selesai</label>
+                                <input type="datetime-local" name="end_time" id="jobEndTime" class="form-control"
+                                    {{ $mode === 'giver' ? 'disabled' : '' }}>
+                            </div>
 
-                    <div class="mb-3">
-                        <label>Alat & Bahan</label>
-                        <textarea name="tools_and_materials" id="jobTools" class="form-control" {{ $mode === 'giver' ? 'disabled' : '' }}></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label>Waktu Mulai</label>
-                        <input type="datetime-local" name="start_time" id="jobStartTime" class="form-control"
-                            {{ $mode === 'giver' ? 'disabled' : '' }}>
-                    </div>
-                    <div class="mb-3">
-                        <label>Waktu Selesai</label>
-                        <input type="datetime-local" name="end_time" id="jobEndTime" class="form-control"
-                            {{ $mode === 'giver' ? 'disabled' : '' }}>
+                        </div>
                     </div>
                 </div>
 
@@ -106,3 +102,27 @@
         </form>
     </div>
 </div>
+
+<script>
+    window.jobMode = "{{ $mode }}";
+</script>
+
+<script>
+    // Setelah pilih employee
+    function setEmployeeIds(employeeIds) {
+        const container = document.getElementById("selectedEmployees");
+        const form = document.getElementById("jobForm");
+
+        // Hapus hidden input lama
+        form.querySelectorAll('input[name="employee_ids[]"]').forEach(el => el.remove());
+
+        // Tambah hidden input per employee
+        employeeIds.forEach(id => {
+            let input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'employee_ids[]';
+            input.value = id;
+            form.appendChild(input);
+        });
+    }
+</script>

@@ -1,16 +1,17 @@
 @extends('layouts.app')
 
-@section('title', 'Job History')
-@section('page-name', 'Job History')
+{{-- @section('title', 'Job History') --}}
+@section('title', 'Histori Job')
+{{-- @section('page-name', 'Job History') --}}
+@section('page-name', 'Histori Job')
 
 @section('content')
     <div class="p-4">
-        <h3 class="mb-3">Job History</h3>
+        {{-- <h3 class="mb-3">Job History</h3> --}}
+        <h3 class="mb-3">Histori Job</h3>
         
         <div class="">
             <div class="d-flex justify-content-end align-items-center mb-3">
-                {{-- <h5>Job History</h5> --}}
-
                 <button class="btn btn-success">
                     <i class="fas fa-file-excel"></i> Export Excel
                 </button>

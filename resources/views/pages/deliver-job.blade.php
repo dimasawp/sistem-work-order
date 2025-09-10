@@ -1,11 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'Deliver Job')
-@section('page-name', 'Deliver Job')
+{{-- @section('title', 'Deliver Job') --}}
+@section('title', 'Buat Job')
+{{-- @section('page-name', 'Deliver Job') --}}
+@section('page-name', 'Buat Job')
 
 @section('content')
 <div class="p-4">
-    <h3 class="mb-3">Deliver Job</h3>
+    {{-- <h3 class="mb-3">Deliver Job</h3> --}}
+    <h3 class="mb-3">Buat Job</h3>
 
     <!-- Toggle View -->
     <div class="mb-3 d-flex justify-content-between">
@@ -33,7 +36,7 @@
                         <div class="d-flex flex-row justify-content-between mb-2">
                             <h5 class="card-title">{{ $job->title }}</h5>
                             
-                            <div class="d-flex flex-row gap-2">
+                            <div class="d-flex flex-row gap-2 text-white">
                                 <!-- Edit Button -->
                                 <button class="btn btn-sm btn-warning" onclick="openEditJobModal({{ $job }})">
                                     <i class="fas fa-pencil-alt"></i>
@@ -53,7 +56,7 @@
                             <p class="card-text">{{ $job->description }}</p>
                         </div>
                         <div>
-                            <span class="badge bg-secondary">{{ $job->status }}</span>
+                            <span class="badge {{ $job->status == 'pending' ? 'bg-secondary' : ($job->status == 'on_process'? 'bg-warning' : 'bg-danger') }}">{{ $job->status }}</span>
                         </div>
                     </div>
                 </div>
@@ -65,7 +68,7 @@
     <div id="listContainer" style="display:none;">
         <table class="table table-bordered">
             <thead>
-                <tr>
+                <tr class="text-center">
                     <th>Judul</th>
                     <th>Deskripsi</th>
                     <th>Status</th>
@@ -77,12 +80,14 @@
                 <tr>
                     <td>{{ $job->title }}</td>
                     <td>{{ $job->description }}</td>
-                    <td><span class="badge bg-info">{{ $job->status }}</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-warning" onclick="openEditJobModal({{ $job }})">
+                    <td class="text-center"><span class="badge {{ $job->status == 'pending' ? 'bg-secondary' : ($job->status == 'on_process'? 'bg-warning' : 'bg-danger') }}">{{ $job->status }}</span></td>
+                    <td class="d-flex flex-row justify-content-center gap-2">
+                        <!-- Edit Button -->
+                        <button class="btn btn-sm btn-warning" onclick='openEditJobModal(@json($job))'>
                             <i class="fas fa-pencil-alt"></i>
                         </button>
 
+                        <!-- Delete Button -->
                        <form action="{{ route('jobs.destroy', $job->id) }}" method="POST">
                             @csrf
                             @method('DELETE')
@@ -100,27 +105,40 @@
 
 {{-- MODAL JOB COMPONENT --}}
 <x-job-modal :departments="$departments" mode="giver"/>
-@endsection
 
-@section('script')
 <script>
-const cardViewRadio = document.getElementById('cardViewRadio');
-const listViewRadio = document.getElementById('listViewRadio');
-const cardContainer = document.getElementById('cardContainer');
-const listContainer = document.getElementById('listContainer');
+    const cardViewRadio = document.getElementById('cardViewRadio');
+    const listViewRadio = document.getElementById('listViewRadio');
+    const cardContainer = document.getElementById('cardContainer');
+    const listContainer = document.getElementById('listContainer');
 
-cardViewRadio.addEventListener('change', function() {
-    if (this.checked) {
-        cardContainer.style.display = '';    // kembali ke default (row bootstrap = flex)
-        listContainer.style.display = 'none';
+    // fungsi untuk switch view
+    function setView(view) {
+        if (view === 'card') {
+            cardViewRadio.checked = true;
+            cardContainer.style.display = '';
+            listContainer.style.display = 'none';
+        } else {
+            listViewRadio.checked = true;
+            cardContainer.style.display = 'none';
+            listContainer.style.display = '';
+        }
+        localStorage.setItem('deliverJobView', view); // simpan ke localStorage
     }
-});
 
-listViewRadio.addEventListener('change', function() {
-    if (this.checked) {
-        cardContainer.style.display = 'none';
-        listContainer.style.display = '';
-    }
-});
+    // cek preferensi user saat load halaman
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedView = localStorage.getItem('deliverJobView') || 'card';
+        setView(savedView);
+    });
+
+    // event listener untuk toggle
+    cardViewRadio.addEventListener('change', function() {
+        if (this.checked) setView('card');
+    });
+
+    listViewRadio.addEventListener('change', function() {
+        if (this.checked) setView('list');
+    });
 </script>
 @endsection
