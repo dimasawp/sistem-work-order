@@ -19,23 +19,19 @@
             display: flex;
             flex-direction: row;
         }
-
         .sidebar {
             width: 250px;
             background-color: #212529;
             color: #fff;
             min-height: 100vh;
         }
-
         .sidebar .nav-link {
             color: #adb5bd;
         }
-
         .sidebar .nav-link.active {
             background-color: #343a40;
             color: #fff;
         }
-
         .content {
             flex-grow: 1;
             /* padding: 20px; */
@@ -43,7 +39,6 @@
         }
     </style>
 </head>
-
 <body>
     {{-- Sidebar --}}
     <div class="sidebar d-flex flex-column p-3">
@@ -86,10 +81,9 @@
 
         <hr>
         <div>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="btn btn-danger w-100">Logout</button>
-            </form>
+            <a class="btn btn-danger w-100" href="#" role="button" onclick="openLogoutModal()">
+                <i class="fas fa-sign-out-alt me-2"></i> Logout
+            </a>
         </div>
     </div>
 
@@ -102,7 +96,6 @@
                 <div class="d-flex align-items-center">
                     <span class="me-2 text-muted">Pages /</span>
                     <span class="fw-semibold">@yield('page-name')</span>
-                    <!-- nanti bagian ini bisa dibuat dinamis pakai yield atau variable -->
                 </div>
 
                 {{-- Right side: profile dropdown --}}
@@ -116,16 +109,16 @@
                             <span>{{ auth()->user()->username }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="#">Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ route('profile') }}">Profile</a></li>
                             <li><a class="dropdown-item" href="#">Settings</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <li>
-                                <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item text-danger">Logout</button>
-                                </form>
+                                <a class="dropdown-item text-danger" href="#" onclick="openLogoutModal()">
+                                    <i class="fas fa-sign-out-alt me-2"></i>
+                                    Logout
+                                </a>
                             </li>
                         </ul>
                     </li>
@@ -135,11 +128,40 @@
         </nav>
 
         @yield('content')
+
+        <!-- Modal Konfirmasi Logout -->
+        <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title" id="logoutModalLabel">Konfirmasi Logout</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <i class="fas fa-sign-out-alt fa-2x text-danger mb-3 p-4 border border-4 border-danger rounded-circle"></i>
+                        <p>Apakah kamu yakin ingin logout dari aplikasi?</p>
+                    </div>
+                    <div class="modal-footer border-0 d-flex justify-content-center">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+
+                        <form id="logoutForm" action="{{ route('logout') }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-danger">Logout</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 
     <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script>
+        function openLogoutModal() {
+            const logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
+            logoutModal.show();
+        }
+    </script>
     @livewireScripts
 </body>
-
 </html>

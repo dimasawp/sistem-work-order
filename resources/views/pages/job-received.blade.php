@@ -49,12 +49,22 @@
             });
         });
 
+        function formatLocal(date) {
+            return date.getFullYear() + '-' +
+                String(date.getMonth() + 1).padStart(2, '0') + '-' +
+                String(date.getDate()).padStart(2, '0') + 'T' +
+                String(date.getHours()).padStart(2, '0') + ':' +
+                String(date.getMinutes()).padStart(2, '0') + ':' +
+                String(date.getSeconds()).padStart(2, '0');
+        }
+
         // 2. Inisialisasi FullCalendar
         document.addEventListener('DOMContentLoaded', function() {
             let calendarEl = document.getElementById('calendar');
             let calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 editable: true,
+                droppable: true,
                 events: @json($assignedJobs),
                 eventDisplay: 'block',
                 eventTimeFormat: {
@@ -96,10 +106,13 @@
                 },
                 eventReceive: function(info) {
                     let jobId = info.event.id;
-                    let start = info.event.startStr; // pakai startStr biar tidak geser timezone
+                    let start = new Date(info.event.start);
+                    start.setHours(8, 0, 0); // jam 08:00 WIB
 
-                    if (!confirm("Apakah kamu yakin ingin menempatkan job ini di tanggal " + start +
-                            "?")) {
+                    let startLocal = formatLocal(start);
+
+                    if (!confirm("Apakah kamu yakin ingin menempatkan job ini di tanggal " +
+                            startLocal + "?")) {
                         info.revert();
                         return;
                     }
@@ -111,7 +124,7 @@
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                start_time: start,
+                                start_time: startLocal,
                                 end_time: null
                             })
                         })
@@ -121,30 +134,34 @@
                                 alert("Gagal update job!");
                                 info.revert();
                             } else {
-                                // update data job langsung di extendedProps biar modal kebaca
                                 let ev = info.event;
-                                if (ev.extendedProps.job) {
-                                    ev.extendedProps.job.start_time = start;
-                                    ev.extendedProps.job.end_time = null;
-                                }
-                                ev.setStart(start);
+                                ev.setAllDay(false);
+                                ev.setStart(start); // set object Date langsung supaya bubble tampil jam
                                 ev.setEnd(null);
 
-                                calendar.refetchEvents(); // refresh event biar langsung muncul
+                                if (ev.extendedProps.job) {
+                                    ev.extendedProps.job.start_time = startLocal;
+                                    ev.extendedProps.job.end_time = null;
+                                }
                             }
                         })
                         .catch(() => info.revert());
                 },
                 eventDrop: function(info) {
                     let jobId = info.event.id;
-                    let start = info.event.startStr;
-                    let end = info.event.endStr;
 
-                    if (!confirm("Apakah kamu yakin ingin memindahkan job ini ke tanggal " + start +
-                            "?")) {
+                    let start = new Date(info.event.start);
+                    start.setHours(8, 0, 0);
+
+                    let end = info.event.end ? new Date(info.event.end) : null;
+
+                    if (!confirm("Apakah kamu yakin ingin memindahkan job ini ke tanggal " + start
+                            .toISOString() + "?")) {
                         info.revert();
                         return;
                     }
+                    let startLocal = formatLocal(start);
+                    let endLocal = end ? formatLocal(end) : null;
 
                     fetch(`/api/jobs/${jobId}/update-time`, {
                             method: 'POST',
@@ -153,29 +170,33 @@
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                start_time: start,
-                                end_time: end
+                                start_time: startLocal,
+                                end_time: endLocal
                             })
                         })
                         .then(res => res.json())
                         .then(data => {
+                            // console.log('Response dari server:', data); // <-- Tambahkan log
+                            // console.log("start", start, "end", end);
+
                             if (!data.success) {
                                 alert("Gagal update job!");
-                                info.revert();
+                                info.revert(); // kembali ke posisi awal
                             } else {
-                                // update data job langsung di extendedProps biar modal kebaca
                                 let ev = info.event;
                                 if (ev.extendedProps.job) {
-                                    ev.extendedProps.job.start_time = start;
-                                    ev.extendedProps.job.end_time = end;
+                                    ev.extendedProps.job.start_time = startLocal; // <-- string
+                                    ev.extendedProps.job.end_time = end ? formatLocal(end) : null;
                                 }
+                                
                                 ev.setStart(start);
                                 ev.setEnd(end);
-
-                                calendar.refetchEvents(); // refresh event biar langsung muncul
                             }
                         })
-                        .catch(() => info.revert());
+                        .catch((err) => {
+                            console.error('Error fetch:', err);
+                            info.revert();
+                        });
                 }
             });
             calendar.render();
@@ -183,7 +204,6 @@
     </script>
     <script>
         const allEmployees = @json($employeesForJs ?? []);
-        // console.log(allEmployees);
 
         const searchInput = document.getElementById('employee_search');
         const suggestionBox = document.getElementById('employeeSuggestions');

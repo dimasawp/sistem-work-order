@@ -8,10 +8,6 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
 class AuthController extends Controller {
-    public function showLoginForm() {
-        return view('auth.login');
-    }
-
     public function login(Request $request) {
         $credentials = $request->validate([
             'username' => 'required|string',
@@ -23,7 +19,8 @@ class AuthController extends Controller {
         if ($user && Hash::check($credentials['password'], $user->password)) {
             Auth::login($user);
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard'); // langsung ke halaman utama
+            // return redirect()->intended('/dashboard'); // langsung ke halaman utama
+            return redirect()->route('dashboard');
         }
 
         return back()->withErrors([

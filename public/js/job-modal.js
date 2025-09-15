@@ -4,13 +4,12 @@
         window.selectedEmployees = [];
     }
 
-    function renderSelectedEmployees() {
+    function renderSelectedEmployees(readOnly = false) {
         const form = document.getElementById("jobForm");
         const selectedBox = document.getElementById("selectedEmployees");
         if (!form || !selectedBox) return;
 
         selectedBox.innerHTML = "";
-        // Hapus hidden input lama
         form.querySelectorAll('input[name="employee_ids[]"]').forEach((el) =>
             el.remove()
         );
@@ -19,21 +18,19 @@
             const chip = document.createElement("span");
             chip.className = "badge bg-primary d-flex align-items-center";
             chip.style.gap = "6px";
-            chip.innerHTML = `${emp.nik} - ${emp.name}`;
+            chip.textContent = `${emp.nik} - ${emp.name}`;
 
-            // hanya receiver yg bisa hapus
-            if (window.jobMode === "receiver") {
-                let closeBtn = document.createElement("button");
+            // hanya buat tombol hapus kalau bukan mode readOnly dan jobMode = receiver
+            if (!readOnly && window.jobMode === "receiver") {
+                const closeBtn = document.createElement("button");
                 closeBtn.type = "button";
                 closeBtn.className = "btn-close btn-close-white btn-sm ms-1";
                 closeBtn.setAttribute("aria-label", "Remove");
                 closeBtn.onclick = function () {
                     chip.remove();
-                    // hapus dari state juga
                     selectedEmployees = selectedEmployees.filter(
                         (e) => e.id !== emp.id
                     );
-                    // hapus hidden input
                     form.querySelectorAll(
                         `input[name="employee_ids[]"][value="${emp.id}"]`
                     ).forEach((el) => el.remove());
@@ -43,64 +40,16 @@
 
             selectedBox.appendChild(chip);
 
-            // hidden input
-            const hidden = document.createElement("input");
-            hidden.type = "hidden";
-            hidden.name = "employee_ids[]";
-            hidden.value = emp.id;
-            form.appendChild(hidden);
+            // hidden input hanya ditambahkan kalau tidak readOnly
+            if (!readOnly) {
+                const hidden = document.createElement("input");
+                hidden.type = "hidden";
+                hidden.name = "employee_ids[]";
+                hidden.value = emp.id;
+                form.appendChild(hidden);
+            }
         });
     }
-
-    // function renderSelectedEmployees() {
-    //     const form = document.getElementById("jobForm");
-    //     const selectedBox = document.getElementById("selectedEmployees");
-    //     if (!form || !selectedBox) return;
-
-    //     selectedBox.innerHTML = "";
-    //     // Hapus hidden input lama
-    //     form.querySelectorAll('input[name="employee_ids[]"]').forEach((el) =>
-    //         el.remove()
-    //     );
-
-    //     selectedEmployees.forEach((emp) => {
-    //         const badge = document.createElement("span");
-    //         badge.classList.add(
-    //             "badge",
-    //             "bg-primary",
-    //             "d-flex",
-    //             "align-items-center"
-    //         );
-    //         badge.style.gap = "6px";
-    //         badge.innerHTML = `${emp.nik} - ${emp.name}`;
-
-    //         // hanya receiver yg bisa hapus
-    //         if (window.jobMode === "receiver") {
-    //             const closeBtn = document.createElement("span");
-    //             closeBtn.innerHTML = "&times;";
-    //             closeBtn.style.cursor = "pointer";
-    //             closeBtn.style.marginLeft = "8px";
-    //             closeBtn.onclick = () => {
-    //                 selectedEmployees = selectedEmployees.filter(
-    //                     (e) => e.id !== emp.id
-    //                 );
-    //                 renderSelectedEmployees();
-    //             };
-    //             badge.appendChild(closeBtn);
-    //         }
-
-    //         selectedBox.appendChild(badge);
-
-    //         // hidden input
-    //         const hidden = document.createElement("input");
-    //         hidden.type = "hidden";
-    //         hidden.name = "employee_ids[]";
-    //         hidden.value = emp.id;
-    //         form.appendChild(hidden);
-    //     });
-    // }
-
-    // Helper
 
     function getEl(id) {
         return document.getElementById(id);
@@ -129,46 +78,6 @@
         );
         getEl("selectedEmployees").innerHTML = "";
     }
-
-    // function addEmployeeToForm(emp) {
-    //     const form = document.getElementById("jobForm");
-    //     const selectedContainer = document.getElementById("selectedEmployees");
-
-    //     if (
-    //         form.querySelector(
-    //             `input[name="employee_ids[]"][value="${emp.id}"]`
-    //         )
-    //     ) {
-    //         return; // jangan duplicate
-    //     }
-
-    //     let input = document.createElement("input");
-    //     input.type = "hidden";
-    //     input.name = "employee_ids[]";
-    //     input.value = emp.id;
-    //     form.appendChild(input);
-
-    //     let chip = document.createElement("span");
-    //     chip.className = "badge bg-primary d-flex align-items-center";
-    //     chip.style.gap = "6px";
-    //     chip.innerHTML = `${emp.nik} - ${emp.name}`;
-
-    //     if (window.jobMode === "receiver") {
-    //         let closeBtn = document.createElement("button");
-    //         closeBtn.type = "button";
-    //         closeBtn.className = "btn-close btn-close-white btn-sm ms-1";
-    //         closeBtn.setAttribute("aria-label", "Remove");
-    //         closeBtn.onclick = function () {
-    //             chip.remove();
-    //             input.remove();
-    //         };
-    //         chip.appendChild(closeBtn);
-    //     }
-
-    //     selectedContainer.appendChild(chip);
-    // }
-
-    // Tambah Job
 
     window.openAddJobModal = function () {
         try {
@@ -271,6 +180,67 @@
         } catch (err) {
             console.error("openEditJobModal error:", err);
         }
+    };
+
+    window.openJobModal = function (job) {
+        const form = getEl("jobForm");
+
+        console.log(job);
+        // Atur route & method
+        let actionUrl = form.dataset.routeUpdate.replace(":id", job.id);
+        form.setAttribute("action", actionUrl);
+        getEl("jobFormMethod").value = "PUT";
+
+        // Isi field dari job
+        getEl("jobTitle").value = job.title || "";
+        getEl("jobGiverText").value = job.job_giver || "";
+        getEl("jobTools").value = job.tools_and_materials || "";
+        getEl("jobDescription").value = job.description || "";
+        getEl("jobStartTime").value = job.start_time || "";
+        getEl("jobEndTime").value = job.end_time || "";
+        getEl("jobDepartment").value =
+            job.department_target_id?.toString() || "";
+
+        if (getEl("jobStatus")) getEl("jobStatus").value = job.status;
+        if (getEl("jobStatusText")) getEl("jobStatusText").value = job.status;
+
+        // Bersihkan dulu chips lama
+        form.querySelectorAll('input[name="employee_ids[]"]').forEach((el) =>
+            el.remove()
+        );
+        getEl("selectedEmployees").innerHTML = "";
+
+        // Prefill receivers (jika ada)
+        window.selectedEmployees = []; // reset dulu
+        if (Array.isArray(job.receivers)) {
+            job.receivers.forEach((emp) => {
+                if (!window.selectedEmployees.find((e) => e.id === emp.id)) {
+                    window.selectedEmployees.push({
+                        id: emp.id,
+                        nik: emp.nik,
+                        name: emp.name,
+                    });
+                }
+            });
+        }
+        renderSelectedEmployees(true);
+
+        // Title & tombol
+        getEl("jobModalTitle").innerText = "Detail Job";
+        getEl("jobModalSubmit").style.display = "none";
+        getEl("jobModalCancel").innerText = "Kembali";
+
+        // Atur akses search
+        let empSearch = getEl("employee_search");
+        if (empSearch) {
+            if (window.jobMode === "view") {
+                empSearch.setAttribute("disabled", true);
+            } else {
+                empSearch.removeAttribute("disabled");
+            }
+        }
+
+        modal.show();
     };
 
     // Debug

@@ -8,6 +8,26 @@ use App\Models\Job;
 use Illuminate\Http\Request;
 
 class JobController extends Controller {
+    public function landing() {
+        $jobs = Job::with(['receivers:id,nik,name', 'department'])
+            ->latest()->get();
+        $departments = Department::all();
+
+        return view('pages.landing', compact(
+            'jobs',
+            'departments',
+        ));
+    }
+
+    public function search(Request $request) {
+        $q = $request->q;
+        $jobs = Job::with('department')
+            ->where('title', 'like', "%$q%")
+            ->latest()->get();
+
+        return view('pages.landing', compact('jobs'));
+    }
+
     private function getEmployeesForDepartment($departmentId) {
         $departmentEmployees = Employee::whereHas('subDepartment.departments', function ($q) use ($departmentId) {
             $q->where('departments.id', $departmentId);
@@ -37,7 +57,6 @@ class JobController extends Controller {
     }
 
     public function received() {
-        // $jobs = Job::with(['employees:id,nik,name'])->get();
         $jobs = Job::with(['receivers:id,nik,name'])->get();
 
         $departments = Department::all();
@@ -117,38 +136,6 @@ class JobController extends Controller {
         return redirect()->route('jobs.deliver')->with('success', 'Job berhasil ditambahkan!');
     }
 
-    // public function update(Request $request, Job $job) {
-    //     $request->validate([
-    //         'title'                => 'nullable|string|max:255',
-    //         'description'          => 'nullable|string',
-    //         'department_target_id' => 'nullable|integer|exists:departments,id',
-    //         'status'               => 'in:pending,on_process,done',
-    //         'tools_and_materials'  => 'nullable|string',
-    //         'start_time'           => 'nullable|date',
-    //         'end_time'             => 'nullable|date|after_or_equal:start_time',
-    //         'employee_ids'         => 'array',
-    //         'employee_ids.*'       => 'integer|exists:employees,id',
-    //     ]);
-
-    //     // Update kolom di jobs table
-    //     $job->update([
-    //         'title'                => $request->title ?? $job->title,
-    //         'description'          => $request->description ?? $job->description,
-    //         'department_target_id' => $request->department_target_id ?? $job->department_target_id,
-    //         'status'               => $request->status ?? $job->status,
-    //         'tools_and_materials'  => $request->tools_and_materials,
-    //         'start_time'           => $request->start_time,
-    //         'end_time'             => $request->end_time,
-    //     ]);
-
-    //     // Sync employee_ids ke pivot
-    //     if ($request->has('employee_ids')) {
-    //         $job->employees()->sync($request->employee_ids);
-    //     }
-
-    //     $redirectRoute = $request->redirect_to ?? 'jobs.deliver';
-    //     return redirect()->route($redirectRoute)->with('success', 'Job berhasil diperbarui!');
-    // }
     public function update(Request $request, Job $job) {
         $request->validate([
             'title'                => 'nullable|string|max:255',
@@ -169,8 +156,6 @@ class JobController extends Controller {
             'department_target_id' => $request->filled('department_target_id') ? $request->department_target_id : $job->department_target_id,
             'status'               => $request->filled('status') ? $request->status : $job->status,
             'tools_and_materials'  => $request->filled('tools_and_materials') ? $request->tools_and_materials : $job->tools_and_materials,
-            // 'start_time'           => $request->filled('start_time') ? $request->start_time : $job->start_time,
-            // 'end_time'             => $request->filled('end_time') ? $request->end_time : $job->end_time,
             'start_time'           => $request->has('start_time')
                 ? ($request->start_time ?: null)
                 : $job->start_time,
@@ -195,6 +180,20 @@ class JobController extends Controller {
 
     public function updateTime(Request $request, Job $job) {
         // dd($job);
+        try {
+            //code...
+            $request->validate([
+                'start_time' => 'required|date',
+                'end_time'   => 'nullable|date|after_or_equal:start_time',
+            ]);
+        }
+        //throw $th;
+        catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors()
+            ], 422);
+        }
         $request->validate([
             'start_time' => 'required|date',
             'end_time'   => 'nullable|date|after_or_equal:start_time',
@@ -212,17 +211,6 @@ class JobController extends Controller {
 
         return response()->json(['success' => true, 'job' => $job]);
     }
-
-    // public function history() {
-    //     $userDeptId = auth()->user()->department_id;
-
-    //     $jobHistory = Job::where('department_target_id', $userDeptId)
-    //         ->where('status', 'done')
-    //         ->get();
-
-    //     return view('pages.job-history', compact('jobHistory'));
-    // }
-
 
     /*public function viewCalendar() {
         // Semua karyawan → untuk pemberi job (job_giver)

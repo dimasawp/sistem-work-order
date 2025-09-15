@@ -12,7 +12,7 @@
 
     <!-- Toggle View -->
     <div class="mb-3 d-flex justify-content-between">
-        <button class="btn btn-success" onclick="openAddJobModal()">+ Tambah Job</button>
+        <button class="btn btn-success" onclick="openAddJobModal()"><i class="fa-solid fa-plus me-2"></i> Tambah Job</button>
 
         <div class="btn-group" role="group" aria-label="View Toggle">
             <input type="radio" class="btn-check" name="viewToggle" id="cardViewRadio" autocomplete="off" checked>

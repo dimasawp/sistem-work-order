@@ -19,6 +19,11 @@ class Job extends Model {
         'status',
     ];
 
+    // protected $casts = [
+    //     'start_time' => 'datetime',
+    //     'end_time'   => 'datetime',
+    // ];
+
     public function employees() {
         return $this->belongsToMany(Employee::class, 'job_receivers', 'job_id', 'employee_id')
             ->withTimestamps();
