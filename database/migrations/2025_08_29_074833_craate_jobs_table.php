@@ -13,10 +13,13 @@ return new class extends Migration {
             $table->id();
             $table->string('title');
             $table->string('job_giver');
+            $table->foreignId('department_target_id')->constrained('departments')->onDelete('cascade');
+            $table->string('ticket_number')->unique();
             $table->text('tools_and_materials')->nullable();
             $table->text('description')->nullable();
             $table->timestamp('start_time')->nullable();
             $table->timestamp('end_time')->nullable();
+            $table->enum('status', ['pending', 'on_process', 'done'])->default('pending');
             $table->timestamps();
         });
     }

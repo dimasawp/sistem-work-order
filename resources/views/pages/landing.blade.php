@@ -6,79 +6,80 @@
     <title>Jobs Landing</title>
 
     <link href="{{ asset('bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-
     <script src="{{ asset('js/job-modal.js') }}"></script>
 
     <style>
         body {
             background: #f5f7fa;
         }
-        .search-box {
-            max-width: 600px;
-        }
-        .job-card {
-            transition: all 0.2s ease;
-            cursor: pointer;
-            border: none;
-        }
-        .job-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
-        }
-        .sticky-login {
-            position: sticky;
-            top: 2rem;
-        }
     </style>
 </head>
 
 <body>
-    <div class="container-fluid px-4 pt-3 pb-1 bg-dark text-light">
-        <h2 class="text-white">GAWE'!</h2>
-    </div>
+    <div class="container-fluid">
+        <div class="row" style="min-height: 100vh;">
 
-    {{-- Hero Search --}}
-    <section class="py-5 text-center search-section bg-dark text-light">
-        <div class="container">
+            <div class="col-md-8 p-4 d-flex flex-column">
+                <div class="py-2 mb-4">
+                    <h1>Work Order</h1>
+                </div>
 
-            <h1 class="fw-bold mb-3">Cari Job</h1>
-            <form method="GET" action="{{ route('jobs.search') }}" class="d-flex mx-auto search-box">
-                <input type="text" name="q" class="form-control form-control-lg me-2"
-                    placeholder="Cari berdasarkan judul job..." value="{{ request('q') }}">
-                <button class="btn btn-light btn-lg" type="submit">Cari</button>
-            </form>
-        </div>
-    </section>
+                <!-- Form Pencarian -->
+                <div class="mb-4">
+                    <form method="GET" action="{{ route('jobs.search') }}" class="d-flex w-100" style="height: 3rem;">
+                        <input type="text" name="q" class="form-control me-2 flex-grow-1"
+                            placeholder="Masukkan nomor ticket untuk cek job..." value="{{ request('q') }}">
+                        <button class="btn btn-primary px-4 fw-semibold text-nowrap" type="submit">
+                            Cek Job
+                        </button>
+                    </form>
+                </div>
 
-    <div class="container py-5">
-        <div class="row">
-            {{-- Card Jobs --}}
-            <div class="col-lg-8">
-                <div class="row g-4">
+                <!-- Daftar Job -->
+                <div class="row g-3">
                     @forelse($jobs as $job)
-                        <div class="col-md-6">
-                            <div class="card job-card shadow-sm h-100" data-bs-toggle="modal" data-bs-target="#jobModal"
-                                data-job='@json($job)'>
+                        <div class="col-md-4">
+                            <div class="card shadow-sm h-100 position-relative job-card" data-bs-toggle="modal" data-bs-target="#jobModal" data-job='@json($job)'>
                                 <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title">{{ $job->title }}</h5>
-                                    <span class="badge bg-primary w-fit mb-2">{{ $job->department->name }}</span>
-                                    <p class="text-secondary small flex-grow-1">{{ Str::limit($job->description, 80) }}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <h5 class="card-title mb-0">{{ $job->title }}</h5>
+                                            <small class="text-muted">{{ $job->ticket_number }}</small>
+                                        </div>
+                                        <div>
+                                            <span
+                                                class="badge {{ $job->status === 'pending' ? 'bg-secondary' : ($job->status === 'on_process' ? 'bg-warning text-dark' : 'bg-success') }}">
+                                                {{ ucfirst($job->status) }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <span class="badge bg-primary align-self-start mb-2">
+                                        {{ $job->department->name }}
+                                    </span>
+                                    <p class="text-secondary small flex-grow-1">
+                                        {{ Str::limit($job->description, 80) }}
                                     </p>
-                                    <p class="small text-muted text-end mb-0">{{ $job->created_at->format('d M Y') }}
-                                    </p>
+
+                                    <div class="d-flex justify-content-end align-items-center mt-auto">
+                                        <p class="small text-muted mb-0">
+                                            {{ $job->created_at->format('d M Y') }}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <p class="text-center text-muted">Tidak ada job ditemukan.</p>
+                        <p class="text-center text-muted">Tidak ada job.</p>
                     @endforelse
                 </div>
             </div>
 
-            {{-- Login Form --}}
-            <div class="col-lg-4">
-                <div class="card p-4 shadow-sm sticky-login">
-                    <h4 class="mb-3 text-center">Login</h4>
+            <!-- Kolom Login -->
+            <div class="col-md-4 p-4 d-flex flex-column justify-content-center align-items-center bg-dark text-light">
+                <div class="w-75">
+                    <h2 class="mb-3 text-center">Login</h2>
+
                     @if ($errors->any())
                         <div class="alert alert-danger">
                             <ul class="mb-0">
@@ -88,27 +89,29 @@
                             </ul>
                         </div>
                     @endif
+
                     <form method="POST" action="{{ route('login.submit') }}">
                         @csrf
                         <div class="mb-3">
                             <label class="form-label">Username</label>
-                            <input type="text" name="username" class="form-control" required autofocus>
+                            <input type="text" name="username" class="form-control">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control" required>
+                            <input type="password" name="password" class="form-control">
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Login</button>
+                        <button type="submit" class="btn btn-primary w-100">
+                            Login
+                        </button>
                     </form>
-
-                    <a href=""></a>
                 </div>
             </div>
+
         </div>
     </div>
 
     {{-- Komponen Modal Job --}}
-    <x-job-modal :departments="$departments" mode="view" />
+    <x-job-modal :departments="$departments ?? []" mode="view" />
 
     {{-- Script --}}
     <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>

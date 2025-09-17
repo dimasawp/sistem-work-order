@@ -77,6 +77,9 @@
             el.remove()
         );
         getEl("selectedEmployees").innerHTML = "";
+
+        let ticket = getEl("jobTicketNumber");
+        if (ticket) ticket.value = "";
     }
 
     window.openAddJobModal = function () {
@@ -144,6 +147,9 @@
             if (getEl("jobStatus")) getEl("jobStatus").value = job.status;
             if (getEl("jobStatusText"))
                 getEl("jobStatusText").value = job.status;
+            if (getEl("jobTicketNumber")) {
+                getEl("jobTicketNumber").value = job.ticket_number ?? "";
+            }
 
             // Bersihkan dulu chips lama
             form.querySelectorAll('input[name="employee_ids[]"]').forEach(
@@ -201,9 +207,11 @@
         getEl("jobDepartment").value =
             job.department_target_id?.toString() || "";
 
+        if (getEl("jobTicketNumber")) {
+            getEl("jobTicketNumber").value = job.ticket_number ?? "";
+        }
         if (getEl("jobStatus")) getEl("jobStatus").value = job.status;
         if (getEl("jobStatusText")) getEl("jobStatusText").value = job.status;
-
         // Bersihkan dulu chips lama
         form.querySelectorAll('input[name="employee_ids[]"]').forEach((el) =>
             el.remove()

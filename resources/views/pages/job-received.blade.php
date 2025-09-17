@@ -17,11 +17,18 @@
                     @forelse($receivedJobs as $job)
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             data-event='@json(['id' => $job->id, 'title' => $job->title, 'job' => $job])'>
-                            <span>
-                                <strong>{{ $job->title }}</strong> - <span
-                                    class="badge {{ $job->status == 'pending' ? 'bg-secondary' : ($job->status == 'on_process' ? 'bg-warning' : 'bg-danger') }}">{{ $job->status }}</span>
-                            </span>
-                            <button class="btn btn-sm btn-warning" onclick='openEditJobModal(@json($job))'>
+                            <div>
+                                <div class="d-flex flex-column">
+                                    <div>
+                                        <strong>{{ $job->title }}</strong> -
+                                        <span
+                                            class="badge {{ $job->status == 'pending' ? 'bg-secondary' : ($job->status == 'on_process' ? 'bg-warning' : 'bg-danger') }}">{{ $job->status }}</span>
+                                    </div>
+                                    <small class="text-muted">{{ $job->ticket_number }}</small>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-warning text-white"
+                                onclick='openEditJobModal(@json($job))'>
                                 <i class="fas fa-pencil-alt"></i>
                             </button>
                         </li>
@@ -38,6 +45,26 @@
     {{-- MODAL JOB COMPONENT --}}
     <x-job-modal :departments="$departments" mode="receiver" />
 
+    {{-- POP UP Drop --}}
+    <div class="modal fade" id="actionConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Konfirmasi</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="actionConfirmMessage" class="mb-0"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="confirmActionBtn">Ya, Lanjutkan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 1. Buat draggable list items
         var jobEls = document.querySelectorAll('#jobList li');
@@ -48,6 +75,34 @@
                 }
             });
         });
+
+        function showConfirm(message, onConfirm, onCancel) {
+            const msgEl = document.getElementById('actionConfirmMessage');
+            const modalEl = document.getElementById('actionConfirmModal');
+            const confirmBtn = document.getElementById('confirmActionBtn');
+
+            msgEl.textContent = message;
+
+            const modal = new bootstrap.Modal(modalEl);
+
+            // Bersihkan handler lama biar gak numpuk
+            confirmBtn.onclick = null;
+            modalEl.onhidden = null;
+
+            // Klik tombol Confirm
+            confirmBtn.onclick = () => {
+                modal.hide();
+                onConfirm && onConfirm();
+            };
+
+            // Jika user menutup modal tanpa klik confirm
+            modalEl.addEventListener('hidden.bs.modal', function handler() {
+                modalEl.removeEventListener('hidden.bs.modal', handler);
+                if (onCancel) onCancel();
+            });
+
+            modal.show();
+        }
 
         function formatLocal(date) {
             return date.getFullYear() + '-' +
@@ -104,100 +159,255 @@
                         alert("Job data tidak lengkap.");
                     }
                 },
+                // eventReceive: function(info) {
+                //     let jobId = info.event.id;
+                //     let start = new Date(info.event.start);
+                //     start.setHours(8, 0, 0); // jam 08:00 WIB
+
+                //     let startLocal = formatLocal(start);
+
+                //     if (!confirm("Apakah kamu yakin ingin menempatkan job ini di tanggal " +
+                //             startLocal + "?")) {
+                //         info.revert();
+                //         return;
+                //     }
+
+                //     fetch(`/api/jobs/${jobId}/update-time`, {
+                //             method: 'POST',
+                //             headers: {
+                //                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                //                 'Content-Type': 'application/json'
+                //             },
+                //             body: JSON.stringify({
+                //                 start_time: startLocal,
+                //                 end_time: null
+                //             })
+                //         })
+                //         .then(res => res.json())
+                //         .then(data => {
+                //             if (!data.success) {
+                //                 alert("Gagal update job!");
+                //                 info.revert();
+                //             } else {
+                //                 let ev = info.event;
+                //                 ev.setAllDay(false);
+                //                 ev.setStart(
+                //                 start); // set object Date langsung supaya bubble tampil jam
+                //                 ev.setEnd(null);
+
+                //                 if (ev.extendedProps.job) {
+                //                     ev.extendedProps.job.start_time = startLocal;
+                //                     ev.extendedProps.job.end_time = null;
+                //                 }
+                //             }
+                //         })
+                //         .catch(() => info.revert());
+                // },
+                // eventDrop: function(info) {
+                //     let jobId = info.event.id;
+
+                //     let start = new Date(info.event.start);
+                //     start.setHours(8, 0, 0);
+
+                //     let end = info.event.end ? new Date(info.event.end) : null;
+
+                //     if (!confirm("Apakah kamu yakin ingin memindahkan job ini ke tanggal " + start
+                //             .toISOString() + "?")) {
+                //         info.revert();
+                //         return;
+                //     }
+                //     let startLocal = formatLocal(start);
+                //     let endLocal = end ? formatLocal(end) : null;
+
+                //     fetch(`/api/jobs/${jobId}/update-time`, {
+                //             method: 'POST',
+                //             headers: {
+                //                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                //                 'Content-Type': 'application/json'
+                //             },
+                //             body: JSON.stringify({
+                //                 start_time: startLocal,
+                //                 end_time: endLocal
+                //             })
+                //         })
+                //         .then(res => res.json())
+                //         .then(data => {
+                //             // console.log('Response dari server:', data); // <-- Tambahkan log
+                //             // console.log("start", start, "end", end);
+
+                //             if (!data.success) {
+                //                 alert("Gagal update job!");
+                //                 info.revert(); // kembali ke posisi awal
+                //             } else {
+                //                 let ev = info.event;
+                //                 if (ev.extendedProps.job) {
+                //                     ev.extendedProps.job.start_time = startLocal; // <-- string
+                //                     ev.extendedProps.job.end_time = end ? formatLocal(end) : null;
+                //                 }
+
+                //                 ev.setStart(start);
+                //                 ev.setEnd(end);
+                //             }
+                //         })
+                //         .catch((err) => {
+                //             console.error('Error fetch:', err);
+                //             info.revert();
+                //         });
+                // }
+
                 eventReceive: function(info) {
-                    let jobId = info.event.id;
-                    let start = new Date(info.event.start);
-                    start.setHours(8, 0, 0); // jam 08:00 WIB
+                    const job = info.event.extendedProps.job;
+                    const jobId = info.event.id;
+                    const start = new Date(info.event.start);
+                    start.setHours(8, 0, 0);
+                    const startLocal = formatLocal(start);
 
-                    let startLocal = formatLocal(start);
+                    // Hapus bubble sementara dari kalender
+                    info.event.remove();
 
-                    if (!confirm("Apakah kamu yakin ingin menempatkan job ini di tanggal " +
-                            startLocal + "?")) {
-                        info.revert();
-                        return;
-                    }
+                    showConfirm(
+                        `Apakah kamu yakin ingin menempatkan job ini di tanggal ${startLocal}?`,
+                        () => { // ✅ onConfirm
+                            fetch(`/api/jobs/${jobId}/update-time`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        start_time: startLocal,
+                                        end_time: null,
+                                        status: 'on_process'
+                                    })
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (!data.success) {
+                                        alert("Gagal update job!");
+                                    } else {
+                                        // ✅ Update juga data job agar modal bisa baca tanggal baru
+                                        if (job) {
+                                            job.start_time = startLocal;
+                                            job.end_time = null;
+                                            job.status = 'on_process';
 
-                    fetch(`/api/jobs/${jobId}/update-time`, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                start_time: startLocal,
-                                end_time: null
-                            })
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (!data.success) {
-                                alert("Gagal update job!");
-                                info.revert();
-                            } else {
-                                let ev = info.event;
-                                ev.setAllDay(false);
-                                ev.setStart(start); // set object Date langsung supaya bubble tampil jam
-                                ev.setEnd(null);
+                                            // Cari <li> berdasarkan ID job
+                                            const listItem = document.querySelector(
+                                                `#jobList li[data-event*='"id":${jobId}']`
+                                            );
 
-                                if (ev.extendedProps.job) {
-                                    ev.extendedProps.job.start_time = startLocal;
-                                    ev.extendedProps.job.end_time = null;
-                                }
-                            }
-                        })
-                        .catch(() => info.revert());
+                                            if (listItem) {
+                                                // Cari elemen badge status di dalam <li>
+                                                const badge = listItem.querySelector('.badge');
+                                                if (badge) {
+                                                    badge.textContent = 'on_process';
+                                                    badge.classList.remove('bg-secondary',
+                                                        'bg-danger');
+                                                    badge.classList.add('bg-warning');
+                                                }
+
+                                                // ✅ Kalau mau simpan status baru di atribut data-event juga:
+                                                const eventData = JSON.parse(listItem.dataset
+                                                    .event);
+                                                eventData.job.status = 'on_process';
+                                                listItem.dataset.event = JSON.stringify(
+                                                    eventData);
+                                            }
+
+                                        }
+
+                                        // Tambahkan event kembali ke kalender
+                                        info.view.calendar.addEvent({
+                                            id: jobId,
+                                            title: info.event.title,
+                                            start: start, // objek Date
+                                            allDay: false,
+                                            extendedProps: {
+                                                job
+                                            } // sudah berisi start_time baru
+                                        });
+                                    }
+                                })
+                                .catch(() => {
+                                    alert("Terjadi kesalahan saat menyimpan.");
+                                });
+                        },
+                        () => {
+                            // ❌ batal: tidak lakukan apa-apa
+                        }
+                    );
                 },
                 eventDrop: function(info) {
-                    let jobId = info.event.id;
+                    const jobId = info.event.id;
+                    const newStart = new Date(info.event.start);
+                    newStart.setHours(8, 0, 0);
+                    const newEnd = info.event.end ? new Date(info.event.end) : null;
 
-                    let start = new Date(info.event.start);
-                    start.setHours(8, 0, 0);
+                    const startLocal = formatLocal(newStart);
+                    const endLocal = newEnd ? formatLocal(newEnd) : null;
 
-                    let end = info.event.end ? new Date(info.event.end) : null;
+                    // Simpan data event sebelum di-revert
+                    const originalEvent = info.event;
+                    const eventData = {
+                        id: originalEvent.id,
+                        title: originalEvent.title,
+                        extendedProps: originalEvent.extendedProps
+                    };
 
-                    if (!confirm("Apakah kamu yakin ingin memindahkan job ini ke tanggal " + start
-                            .toISOString() + "?")) {
-                        info.revert();
-                        return;
-                    }
-                    let startLocal = formatLocal(start);
-                    let endLocal = end ? formatLocal(end) : null;
+                    // Revert dulu supaya bubble "drop sementara" hilang
+                    info.revert();
 
-                    fetch(`/api/jobs/${jobId}/update-time`, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                start_time: startLocal,
-                                end_time: endLocal
-                            })
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            // console.log('Response dari server:', data); // <-- Tambahkan log
-                            // console.log("start", start, "end", end);
+                    showConfirm(
+                        `Apakah kamu yakin ingin memindahkan job ini ke tanggal ${startLocal}?`,
+                        () => {
+                            fetch(`/api/jobs/${jobId}/update-time`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        start_time: startLocal,
+                                        end_time: endLocal
+                                    })
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (!data.success) {
+                                        alert("Gagal update job!");
+                                        return;
+                                    }
 
-                            if (!data.success) {
-                                alert("Gagal update job!");
-                                info.revert(); // kembali ke posisi awal
-                            } else {
-                                let ev = info.event;
-                                if (ev.extendedProps.job) {
-                                    ev.extendedProps.job.start_time = startLocal; // <-- string
-                                    ev.extendedProps.job.end_time = end ? formatLocal(end) : null;
-                                }
-                                
-                                ev.setStart(start);
-                                ev.setEnd(end);
-                            }
-                        })
-                        .catch((err) => {
-                            console.error('Error fetch:', err);
-                            info.revert();
-                        });
-                }
+                                    // Hapus event lama kalau masih ada
+                                    const existing = info.view.calendar.getEventById(jobId);
+                                    if (existing) existing.remove();
+
+                                    // Buat bubble baru di tanggal baru
+                                    const updatedJob = {
+                                        ...eventData.extendedProps.job,
+                                        start_time: startLocal,
+                                        end_time: endLocal,
+                                        status: 'on_process'
+                                    };
+
+                                    info.view.calendar.addEvent({
+                                        id: jobId,
+                                        title: eventData.title,
+                                        start: newStart,
+                                        end: newEnd,
+                                        allDay: false,
+                                        extendedProps: {
+                                            job: updatedJob
+                                        }
+                                    });
+                                })
+                                .catch(() => alert("Terjadi kesalahan saat update."));
+                        },
+                        () => {
+                            // batal -> tidak lakukan apa pun (bubble lama tetap ada karena revert)
+                        }
+                    );
+                },
             });
             calendar.render();
         });

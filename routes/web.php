@@ -32,4 +32,6 @@ Route::middleware(['auth'])->group(function () {
     // Route::put('/profile/update-email', [UserController::class, 'updateEmail'])->name('profile.update.email');
     Route::put('/profile/update-password', [UserController::class, 'updatePassword'])->name('profile.update.password');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    Route::get('/generate-ticket/{deptId}', [JobController::class, 'generateTicket']);
 });

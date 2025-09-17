@@ -26,10 +26,8 @@
 
                     <div class="row">
                         <div class="col-6">
-
                             <div class="mb-3">
                                 <label>Department Tujuan</label>
-                                {{-- <select name="department_target_id" id="jobDepartment" class="form-select" {{ $mode === 'receiver' ? 'disabled' : '' }} required> --}}
                                 <select name="department_target_id" id="jobDepartment" class="form-select" {{ in_array($mode, ['receiver', 'view']) ? 'disabled' : '' }} required>
                                     <option value="">-- Pilih Department --</option>
                                     @foreach ($departments as $dept)
@@ -38,28 +36,36 @@
                                 </select>
                             </div>
                             <div class="mb-3">
+                                <label for="jobTicketNumber" class="form-label">Nomor Ticket</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="jobTicketNumber" name="ticket_number"
+                                        readonly>
+                                    <button type="button" class="btn btn-outline-secondary"
+                                        onclick="copyTicket()">Copy</button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
                                 <label>Pemberi Job</label>
-                                {{-- <input type="text" id="jobGiverText" class="form-control" value="{{ $mode === 'giver' ? auth()->user()->id : '' }}" {{ $mode === 'receiver' ? 'disabled' : 'readonly' }}> --}}
-                                <input type="text" id="jobGiverText" class="form-control" value="{{ $mode === 'giver' ? auth()->user()->id : '' }}" {{ in_array($mode, ['receiver', 'view']) ? 'disabled' : 'readonly' }}>
+                                <input type="text" id="jobGiverText" class="form-control"
+                                    value="{{ $mode === 'giver' ? auth()->user()->id : '' }}"
+                                    {{ in_array($mode, ['receiver', 'view']) ? 'disabled' : 'readonly' }}>
                             </div>
                             <div class="mb-3">
                                 <label>Judul</label>
-                                {{-- <input type="text" name="title" id="jobTitle" class="form-control" {{ $mode === 'receiver' ? 'disabled' : '' }} required> --}}
-                                <input type="text" name="title" id="jobTitle" class="form-control" {{ in_array($mode, ['receiver', 'view']) ? 'disabled' : '' }} required>
+                                <input type="text" name="title" id="jobTitle" class="form-control"
+                                    {{ in_array($mode, ['receiver', 'view']) ? 'disabled' : '' }} required>
                             </div>
                             <div class="mb-3 d-flex flex-column">
                                 <label>Deskripsi</label>
-                                {{-- <textarea name="description" id="jobDescription" class="form-control flex-shrink-1" rows="6" {{ $mode === 'receiver' ? 'disabled' : '' }} required></textarea> --}}
-                                <textarea name="description" id="jobDescription" class="form-control" rows="6" {{ in_array($mode, ['receiver', 'view']) ? 'disabled' : '' }} required></textarea>
+                                <textarea name="description" id="jobDescription" class="form-control" rows="6"
+                                    {{ in_array($mode, ['receiver', 'view']) ? 'disabled' : '' }} required></textarea>
                             </div>
-
                         </div>
                         <div class="col-6">
-
                             <div class="mb-3">
                                 <label>Status Job</label>
-                                {{-- <select name="status" id="jobStatusText" class="form-select" {{ $mode === 'giver' ? 'disabled' : '' }}> --}}
-                                <select name="status" id="jobStatusText" class="form-select" {{ in_array($mode, ['giver', 'view']) ? 'disabled' : '' }}>
+                                <select name="status" id="jobStatusText" class="form-select"
+                                    {{ in_array($mode, ['giver', 'view']) ? 'disabled' : '' }}>
                                     <option value="pending">Pending</option>
                                     <option value="on_process">On Process</option>
                                     <option value="done">Done</option>
@@ -67,8 +73,9 @@
                             </div>
                             <div class="mb-3 position-relative">
                                 <label for="employee_search" class="form-label">Pengambil Job</label>
-                                {{-- <input type="text" class="form-control" id="employee_search" autocomplete="off" placeholder="Ketik nama / NIK..." {{ $mode === 'giver' ? 'disabled' : '' }}> --}}
-                                <input type="text" class="form-control" id="employee_search" autocomplete="off" placeholder="Ketik nama / NIK..." {{ in_array($mode, ['giver', 'view']) ? 'disabled' : '' }}>
+                                <input type="text" class="form-control" id="employee_search" autocomplete="off"
+                                    placeholder="Ketik nama / NIK..."
+                                    {{ in_array($mode, ['giver', 'view']) ? 'disabled' : '' }}>
                                 <div id="employeeSuggestions" class="list-group position-absolute w-100"
                                     style="z-index: 1000;">
                                 </div>
@@ -78,18 +85,18 @@
                             </div>
                             <div class="mb-3">
                                 <label>Alat & Bahan</label>
-                                {{-- <textarea name="tools_and_materials" id="jobTools" class="form-control" {{ $mode === 'giver' ? 'disabled' : '' }}></textarea> --}}
-                                <textarea name="tools_and_materials" id="jobTools" class="form-control" {{ in_array($mode, ['giver', 'view']) ? 'disabled' : '' }}></textarea>
+                                <textarea name="tools_and_materials" id="jobTools" class="form-control"
+                                    {{ in_array($mode, ['giver', 'view']) ? 'disabled' : '' }}></textarea>
                             </div>
                             <div class="mb-3">
                                 <label>Waktu Mulai</label>
-                                {{-- <input type="datetime-local" name="start_time" id="jobStartTime" class="form-control" {{ $mode === 'giver' ? 'disabled' : '' }}> --}}
-                                <input type="datetime-local" name="start_time" id="jobStartTime" class="form-control" {{ in_array($mode, ['giver', 'view']) ? 'disabled' : '' }}>
+                                <input type="datetime-local" name="start_time" id="jobStartTime" class="form-control"
+                                    {{ in_array($mode, ['giver', 'view']) ? 'disabled' : '' }}>
                             </div>
                             <div class="mb-3">
                                 <label>Waktu Selesai</label>
-                                {{-- <input type="datetime-local" name="end_time" id="jobEndTime" class="form-control" {{ $mode === 'giver' ? 'disabled' : '' }}> --}}
-                                <input type="datetime-local" name="end_time" id="jobEndTime" class="form-control" {{ in_array($mode, ['giver', 'view']) ? 'disabled' : '' }}>
+                                <input type="datetime-local" name="end_time" id="jobEndTime" class="form-control"
+                                    {{ in_array($mode, ['giver', 'view']) ? 'disabled' : '' }}>
                             </div>
                         </div>
                     </div>
@@ -127,4 +134,24 @@
             form.appendChild(input);
         });
     }
+
+document.getElementById('jobDepartment').addEventListener('change', function () {
+    const deptId = this.value;
+    if (!deptId) return;
+
+    fetch(`/generate-ticket/${deptId}`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('jobTicketNumber').value = data.ticket_number;
+        });
+});
+
+function copyTicket() {
+    const input = document.getElementById('jobTicketNumber');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    alert('Ticket number copied!');
+}
 </script>
+

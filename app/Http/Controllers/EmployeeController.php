@@ -47,6 +47,7 @@ class EmployeeController extends Controller {
             'pm' => ['PIMPINAN'],
             'pp' => ['PM 3', 'PM 3 ADDITIVE', 'PM 3 HYDRA', 'PM 3 MS POT', 'PM 3 OUTSORSING', 'PM 3 PELAKSANA', 'PM 3 PENGAWAS', 'PM 3 REFINER', 'PM 3 UPL', 'PM 3 WKL'],
             'tm' => ['TEHNISI', 'TEHNISI BOILER A GAB', 'TEHNISI OS BOILER', 'TEHNISI OUTSORSING'],
+            // 'tm' => ['TEHNISI BOILER A GAB', 'TEHNISI OS BOILER', 'TEHNISI OUTSORSING'],
             'tl' => ['TEHNISI LISTRIK INS', 'TEHNISI OUTSORSING'],
         ];
 
@@ -70,29 +71,35 @@ class EmployeeController extends Controller {
             $kdBagian = strtoupper(trim($emp['Kd_Bagian'] ?? ''));
             if (!$kdBagian) continue;
 
-            // 1. Cari / buat SubDepartment sesuai nama asli kd_bagian
             $subDept = SubDepartment::firstOrCreate(['name' => $kdBagian]);
 
-            // 2. Cari groupKey berdasarkan substring (contain)
-            $groupKey = null;
+            $groupKeys = [];
+
             foreach ($mapping as $key => $keywords) {
                 foreach ($keywords as $kw) {
-                    if (stripos($kdBagian, $kw) !== false) {
-                        $groupKey = $key;
-                        break 2; // keluar dari 2 loop sekaligus
+                    $kw = strtoupper(trim($kw));
+                    // Exact match atau TEHNISI OUTSORSING
+                    if ($kdBagian === $kw || ($kw === 'TEHNISI OUTSORSING' && stripos($kdBagian, 'TEHNISI OUTSORSING') !== false)) {
+                        $groupKeys[] = $key;
                     }
                 }
             }
 
-            // 3. Jika ketemu groupKey → hubungkan subDept dengan Department
-            if ($groupKey && isset($deptMap[$groupKey])) {
-                $deptName = $deptMap[$groupKey];
-                $department = Department::firstOrCreate(['name' => $deptName]);
-
-                $subDept->departments()->syncWithoutDetaching([$department->id]);
+            // Tambahkan khusus TEHNISI OUTSORSING ke TM + TL
+            if (stripos($kdBagian, 'TEHNISI OUTSORSING') !== false) {
+                if (!in_array('tm', $groupKeys)) $groupKeys[] = 'tm';
+                if (!in_array('tl', $groupKeys)) $groupKeys[] = 'tl';
             }
 
-            // 4. Simpan / update employee
+            $groupKeys = array_unique($groupKeys);
+
+            foreach ($groupKeys as $groupKey) {
+                if (isset($deptMap[$groupKey])) {
+                    $department = Department::firstOrCreate(['name' => $deptMap[$groupKey]]);
+                    $subDept->departments()->syncWithoutDetaching([$department->id]);
+                }
+            }
+
             Employee::updateOrCreate(
                 ['nik' => $emp['NIK']],
                 [
@@ -103,6 +110,7 @@ class EmployeeController extends Controller {
                 ]
             );
         }
+
 
         return back()->with('success', 'Data karyawan berhasil disinkronisasi');
     }

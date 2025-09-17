@@ -43,7 +43,7 @@
     {{-- Sidebar --}}
     <div class="sidebar d-flex flex-column p-3">
         {{-- <h4 class="text-white mb-4">{{ config('app.name', 'Job System') }}</h4> --}}
-        <h4 class="text-white mb-4">GAWE'!</h4>
+        <h4 class="text-white mb-4">Work Order</h4>
         <ul class="nav nav-pills flex-column mb-auto">
             <li class="nav-item">
                 <a href="{{ route('dashboard') }}"
