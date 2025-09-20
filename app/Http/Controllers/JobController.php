@@ -10,8 +10,9 @@ use Illuminate\Http\Request;
 
 class JobController extends Controller {
     public function landing() {
-        $jobs = Job::with(['receivers:id,nik,name', 'department'])
+        $jobs = Job::with(['receivers:id,nik,name', 'department', 'giver.employee'])
             ->latest()->take(10)->get();
+        // dd($jobs);
         $departments = Department::all();
 
         return view('pages.landing', compact(
@@ -25,8 +26,9 @@ class JobController extends Controller {
         $jobs = Job::with('department')
             ->where('ticket_number', 'like', "%$q%")
             ->latest()->get();
+        $departments = Department::all();
 
-        return view('pages.landing', compact('jobs'));
+        return view('pages.landing', compact('jobs', 'departments'));
     }
 
     private function getEmployeesForDepartment($departmentId) {
@@ -97,7 +99,7 @@ class JobController extends Controller {
 
     public function deliver() {
         $jobs = Job::with(['receivers:id,nik,name'])
-            ->where('job_giver', auth()->id())
+            ->where('user_id', auth()->id())
             ->get();
 
         $userDeptId = auth()->user()->department_id;
@@ -121,13 +123,17 @@ class JobController extends Controller {
 
         $receivedJobs = Job::with(['receivers:id,nik,name'])
             ->where('department_target_id', $userDeptId)
-            ->where('status', '!=', 'done')
+            ->where(function ($q) {
+                $q->where('status', '!=', 'done')
+                    ->orWhereNull('giver_confirmation') // include yang belum dikonfirmasi
+                    ->orWhere('giver_confirmation', '!=', 'accepted');
+            })
             ->get();
 
         $assignedJobs = Job::with(['receivers:id,nik,name'])
             ->where('department_target_id', $userDeptId)
             ->whereNotNull('start_time')
-            ->whereIn('status', ['pending', 'on_process'])
+            // ->whereIn('status', ['pending', 'on_process'])
             ->get()
             ->map(fn($job) => [
                 'id' => $job->id,
@@ -137,18 +143,12 @@ class JobController extends Controller {
                 'job' => $job,
             ]);
 
-
-        $jobHistory = Job::where('department_target_id', $userDeptId)
-            ->where('status', 'done')
-            ->get();
-
         $employeesForJs = $this->getEmployeesForDepartment($userDeptId);
 
         return view('pages.job-received', compact(
             'jobs',
             'receivedJobs',
             'assignedJobs',
-            'jobHistory',
             'departments',
             'employeesForJs'
         ));
@@ -157,8 +157,10 @@ class JobController extends Controller {
     public function history() {
         $userDeptId = auth()->user()->department_id;
 
-        $jobHistory = Job::where('department_target_id', $userDeptId)
+        $jobHistory = Job::with(['receivers:id,nik,name', 'department'])
+            ->where('department_target_id', $userDeptId)
             ->where('status', 'done')
+            ->where('giver_confirmation', 'accepted')
             ->get();
 
         $departments = Department::all();
@@ -171,20 +173,27 @@ class JobController extends Controller {
         $request->validate([
             'title'                => 'required|string|max:255',
             'description'          => 'nullable|string',
-            'job_giver'            => 'required|integer|exists:users,id',
+            'user_id'              => 'required|integer|exists:users,id',
             'department_target_id' => 'required|integer|exists:departments,id',
             'status'               => 'in:pending,on_process,done'
         ]);
 
         $ticketNumber = $this->generateTicketNumber($request->department_target_id);
 
+        // ambil user
+        $user = \App\Models\User::with('employee')->findOrFail($request->user_id);
+
         $job = new Job();
         $job->title                = $request->title;
         $job->description          = $request->description;
-        $job->job_giver            = $request->job_giver;
+        $job->user_id              = $request->user_id;
         $job->department_target_id = $request->department_target_id;
         $job->status               = 'pending'; // override biar aman
         $job->ticket_number        = $ticketNumber;
+
+        // snapshot pemberi job
+        $job->giver_nik   = $user->employee->nik ?? null;
+        $job->giver_name  = $user->employee->name ?? $user->name ?? null;
 
         // bagian penerima → null dulu
         $job->tools_and_materials  = null;
@@ -207,8 +216,18 @@ class JobController extends Controller {
             'end_time'             => 'nullable|date|after_or_equal:start_time',
             'employee_ids'         => 'nullable|array',
             'employee_ids.*'       => 'nullable|integer|exists:employees,id',
+            'user_id'              => 'nullable|integer|exists:users,id', // optional kalau mau ganti pemberi
         ]);
 
+        // Kalau user_id ikut diupdate → perbarui snapshot
+        if ($request->has('user_id')) {
+            $user = \App\Models\User::with('employee')->findOrFail($request->user_id);
+            $job->user_id     = $request->user_id;
+            $job->giver_nik   = $user->employee->nik ?? null;
+            $job->giver_name  = $user->employee->name ?? $user->name ?? null;
+        }
+
+        // Update field lain
         $job->update([
             'title'                => $request->has('title') ? $request->title : $job->title,
             'description'          => $request->has('description') ? $request->description : $job->description,
@@ -219,11 +238,26 @@ class JobController extends Controller {
             'end_time'             => $request->has('end_time') ? ($request->end_time ?: null) : $job->end_time,
         ]);
 
-        // Selalu sync, meskipun kosong
-        $job->employees()->sync($request->input('employee_ids', []));
+        // Sync penerima (relasi many-to-many)
+        $job->receivers()->sync($request->input('employee_ids', []));
 
         $redirectRoute = $request->redirect_to ?? 'jobs.deliver';
         return redirect()->route($redirectRoute)->with('success', 'Job berhasil diperbarui!');
+    }
+
+    public function confirm(Job $job) {
+        $job->giver_confirmation = 'accepted';
+        $job->save();
+
+        return response()->json(['message' => 'Job dikonfirmasi']);
+    }
+
+    public function reject(Job $job) {
+        $job->giver_confirmation = 'rejected';
+        $job->status = 'on_process'; // atau status lain sesuai kebutuhan
+        $job->save();
+
+        return response()->json(['message' => 'Job ditolak']);
     }
 
     public function destroy(Job $job) {
@@ -232,16 +266,12 @@ class JobController extends Controller {
     }
 
     public function updateTime(Request $request, Job $job) {
-        // dd($job);
         try {
-            //code...
             $request->validate([
                 'start_time' => 'required|date',
                 'end_time'   => 'nullable|date|after_or_equal:start_time',
             ]);
-        }
-        //throw $th;
-        catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'errors' => $e->errors()
@@ -259,7 +289,6 @@ class JobController extends Controller {
         if ($job->status === 'pending') {
             $job->status = 'on_process';
         }
-
         $job->save();
 
         return response()->json(['success' => true, 'job' => $job]);

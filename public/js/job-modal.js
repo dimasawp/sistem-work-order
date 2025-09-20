@@ -4,6 +4,10 @@
         window.selectedEmployees = [];
     }
 
+    function getEl(id) {
+        return document.getElementById(id);
+    }
+
     function renderSelectedEmployees(readOnly = false) {
         const form = document.getElementById("jobForm");
         const selectedBox = document.getElementById("selectedEmployees");
@@ -51,8 +55,16 @@
         });
     }
 
-    function getEl(id) {
-        return document.getElementById(id);
+    // Fungsi untuk disable/enable kolom tertentu
+    function setColumnDisabled(columnId, disabled) {
+        const col = getEl(columnId);
+        if (!col) return;
+
+        col.querySelectorAll("input, select, textarea, button").forEach(
+            (el) => {
+                if (el.type !== "hidden") el.disabled = disabled;
+            }
+        );
     }
 
     function showModal() {
@@ -61,7 +73,13 @@
             console.error("jobModal element not found in DOM");
             return null;
         }
-        return new bootstrap.Modal(modalEl);
+
+        // Ambil instance yang sudah ada, jika belum ada buat baru
+        let modal = bootstrap.Modal.getInstance(modalEl);
+        if (!modal) {
+            modal = new bootstrap.Modal(modalEl, { backdrop: true });
+        }
+        return modal;
     }
 
     // Reset semua input & chips
@@ -96,9 +114,17 @@
             // Reset field
             resetFormFields(form);
 
+            getEl("jobGiverHidden").value = window.currentUser.id || "";
+            getEl("jobGiverText").value = window.currentUser.name || "";
+
             // Title & tombol
             getEl("jobModalTitle").innerText = "Tambah Job";
             getEl("jobModalSubmit").innerText = "Simpan";
+
+            setColumnDisabled("leftColumn", false);
+            setColumnDisabled("rightColumn", true);
+            const confirmBox = getEl("confirmJobForm");
+            if (confirmBox) confirmBox.classList.add("d-none");
 
             // Enable/disable input search sesuai mode
             let empSearch = getEl("employee_search");
@@ -116,7 +142,6 @@
         }
     };
 
-    // Edit Job
     window.openEditJobModal = function (job) {
         try {
             if (!job || typeof job !== "object") {
@@ -136,7 +161,10 @@
 
             // Isi field dari job
             getEl("jobTitle").value = job.title || "";
-            getEl("jobGiverText").value = job.job_giver || "";
+            // getEl("jobGiverText").value = job.user_id || "";
+            getEl("jobGiverHidden").value = job.giver_id || "";
+            getEl("jobGiverText").value = job.giver_name || job.user_id || "";
+
             getEl("jobTools").value = job.tools_and_materials || "";
             getEl("jobDescription").value = job.description || "";
             getEl("jobStartTime").value = job.start_time || "";
@@ -157,6 +185,9 @@
             );
             getEl("selectedEmployees").innerHTML = "";
 
+            getEl("jobModalTitle").innerText = "Edit Job";
+            getEl("jobModalSubmit").innerText = "Perbarui";
+
             // Prefill receivers (jika ada)
             if (Array.isArray(job.receivers)) {
                 selectedEmployees = []; // reset dulu
@@ -165,12 +196,12 @@
                         selectedEmployees.push(emp);
                     }
                 });
-                renderSelectedEmployees();
+                if (job.status === "done") {
+                    renderSelectedEmployees(true);
+                } else {
+                    renderSelectedEmployees();
+                }
             }
-
-            // Title & tombol
-            getEl("jobModalTitle").innerText = "Edit Job";
-            getEl("jobModalSubmit").innerText = "Perbarui";
 
             // Atur akses search
             let empSearch = getEl("employee_search");
@@ -182,16 +213,50 @@
                 }
             }
 
+            // Jangan dihapus karena dipake buat konfirmasi
+            window.currentJobId = job.id;
+
             modal.show();
+
+            const confirmBox = getEl("confirmJobForm");
+            const updateBtn = getEl("jobModalSubmit");
+            if (job.status === "done") {
+                setColumnDisabled("leftColumn", true);
+                setColumnDisabled("rightColumn", true);
+                updateBtn.classList.add("d-none");
+                if (job.giver_confirmation === "accepted") {
+                    confirmBox.classList.add("d-none");
+                } else {
+                    confirmBox.classList.remove("d-none");
+                }
+            } else {
+                updateBtn.classList.remove("d-none");
+                if (window.jobMode === "giver") {
+                    setColumnDisabled("leftColumn", false);
+                    setColumnDisabled("rightColumn", true);
+                } else if (window.jobMode === "receiver") {
+                    setColumnDisabled("leftColumn", true);
+                    setColumnDisabled("rightColumn", false);
+                }
+                confirmBox.classList.add("d-none");
+            }
         } catch (err) {
             console.error("openEditJobModal error:", err);
         }
     };
 
     window.openJobModal = function (job) {
+        const modal = showModal();
+        if (!modal) return;
+
         const form = getEl("jobForm");
 
         console.log(job);
+        console.log(
+            typeof getEl("jobDepartment").value,
+            typeof job.department_target_id
+        );
+
         // Atur route & method
         let actionUrl = form.dataset.routeUpdate.replace(":id", job.id);
         form.setAttribute("action", actionUrl);
@@ -199,13 +264,17 @@
 
         // Isi field dari job
         getEl("jobTitle").value = job.title || "";
-        getEl("jobGiverText").value = job.job_giver || "";
+        // getEl("jobGiverText").value = job.user_id || "";
+        getEl("jobGiverHidden").value = job.giver_id || "";
+        getEl("jobGiverText").value = job.giver_name || job.user_id || "";
+
         getEl("jobTools").value = job.tools_and_materials || "";
         getEl("jobDescription").value = job.description || "";
         getEl("jobStartTime").value = job.start_time || "";
         getEl("jobEndTime").value = job.end_time || "";
         getEl("jobDepartment").value =
             job.department_target_id?.toString() || "";
+        // console.log("Set department:", getEl("jobDepartment").value);
 
         if (getEl("jobTicketNumber")) {
             getEl("jobTicketNumber").value = job.ticket_number ?? "";
@@ -237,6 +306,9 @@
         getEl("jobModalTitle").innerText = "Detail Job";
         getEl("jobModalSubmit").style.display = "none";
         getEl("jobModalCancel").innerText = "Kembali";
+
+        setColumnDisabled("leftColumn", true);
+        setColumnDisabled("rightColumn", true);
 
         // Atur akses search
         let empSearch = getEl("employee_search");

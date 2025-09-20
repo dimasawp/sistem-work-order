@@ -22,9 +22,9 @@ class User extends Authenticatable {
         'remember_token',
     ];
 
-    protected $casts = [
-        'password' => 'hashed',
-    ];
+    // protected $casts = [
+    //     'password' => 'hashed',
+    // ];
 
     public function department() {
         return $this->belongsTo(Department::class);

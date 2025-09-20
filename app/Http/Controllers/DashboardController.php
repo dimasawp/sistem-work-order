@@ -16,7 +16,7 @@ class DashboardController extends Controller {
         $deptEmployeesCount = Employee::whereHas('subDepartment.departments', function ($q) use ($deptId) {
             $q->where('departments.id', $deptId);
         })->count();
-        $deptGivenJobsCount = Job::where('job_giver', $user->id)->count();
+        $deptGivenJobsCount = Job::where('user_id', $user->id)->count();
         $deptReceivedJobsCount = Job::where('department_target_id', $deptId)->count();
         $deptPendingJobsCount = Job::where('department_target_id', $deptId)
             ->whereIn('status', ['pending', 'on_process'])

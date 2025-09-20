@@ -30,30 +30,38 @@
                             <label class="form-label">Role Akses</label>
                             <ul>
                                 @foreach (auth()->user()->roles as $role)
-                                    <li class="">
-                                        {{ ucfirst($role->name) }}
-                                    </li>
+                                    <li>{{ ucfirst($role->name) }}</li>
                                 @endforeach
                             </ul>
                         </div>
 
-                        <!-- Email (inline edit) -->
-                        <div class="mb-4" id="email-section">
-                            <label class="form-label">Email</label>
-                            <div class="d-flex gap-2 align-items-center">
-                                <!-- <input type="email" id="emailInput" class="form-control" value="{{ auth()->user()->email }}" readonly> -->
-                                <input type="email" id="emailInput" class="form-control"
-                                    value="{{ auth()->user()->email }}" disabled>
-                                <button class="btn btn-outline-primary" type="button" id="editEmailBtn">Edit</button>
-                                <button class="btn btn-success d-none" type="button" id="saveEmailBtn">Simpan</button>
-                                <button class="btn btn-secondary d-none" type="button" id="cancelEmailBtn">Batal</button>
+                        <!-- NIK (inline edit) -->
+                        <div class="mb-4" id="nik-section">
+                            <label class="form-label">NIK</label>
+                            <div class="d-flex flex-row gap-2">
+                                <div class="position-relative flex-grow-1">
+                                    <input type="text" id="nikInput" class="form-control"
+                                        value="{{ optional(auth()->user()->employee)->nik }}"
+                                        placeholder="Cari dengan NIK atau Nama" disabled autocomplete="off">
+
+                                    <!-- kotak suggestion -->
+                                    <div id="nikSuggestions" class="list-group position-absolute w-100 shadow"
+                                        style="z-index: 1000;"></div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-primary" type="button" id="editNikBtn">Edit</button>
+                                    <button class="btn btn-success d-none" type="button" id="saveNikBtn">Simpan</button>
+                                    <button class="btn btn-secondary d-none" type="button" id="cancelNikBtn">Batal</button>
+                                </div>
                             </div>
-                            {{-- <form action="{{ route('profile.update.email') }}" method="POST" id="emailForm" class="d-none"> --}}
-                            <form action="" method="POST" id="emailForm" class="d-none">
+
+                            <form action="{{ route('profile.update.nik') }}" method="POST" id="nikForm" class="d-none">
                                 @csrf @method('PUT')
-                                <input type="hidden" name="email" id="emailHidden">
+                                <input type="hidden" name="nik" id="nikHidden">
                             </form>
                         </div>
+
 
                         <!-- Ubah Password -->
                         <div class="mb-3" id="password-section">
@@ -74,8 +82,8 @@
                                             id="cancelPasswordBtn">Batal</button>
                                     </div>
                                 </div>
-                                <form action="{{ route('profile.update.password') }}" method="POST" id="passwordHiddenForm" class="d-none">
-                                {{-- <form action="" method="POST" id="passwordHiddenForm" class="d-none"> --}}
+                                <form action="{{ route('profile.update.password') }}" method="POST" id="passwordHiddenForm"
+                                    class="d-none">
                                     @csrf @method('PUT')
                                     <input type="hidden" name="password" id="passwordHidden">
                                 </form>
@@ -91,37 +99,81 @@
     {{-- Script --}}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // EMAIL inline edit
-            const emailInput = document.getElementById('emailInput');
-            const emailHidden = document.getElementById('emailHidden');
-            const editEmailBtn = document.getElementById('editEmailBtn');
-            const saveEmailBtn = document.getElementById('saveEmailBtn');
-            const cancelEmailBtn = document.getElementById('cancelEmailBtn');
-            const emailForm = document.getElementById('emailForm');
+            // ==== NIK inline edit ====
+            const allEmployees = @json($employees);
 
-            editEmailBtn.addEventListener('click', () => {
-                // emailInput.removeAttribute('readonly');
-                emailInput.removeAttribute('disabled');
-                editEmailBtn.classList.add('d-none');
-                saveEmailBtn.classList.remove('d-none');
-                cancelEmailBtn.classList.remove('d-none');
-                emailInput.focus();
+            const nikInput = document.getElementById('nikInput');
+            const nikHidden = document.getElementById('nikHidden');
+            const editNikBtn = document.getElementById('editNikBtn');
+            const saveNikBtn = document.getElementById('saveNikBtn');
+            const cancelNikBtn = document.getElementById('cancelNikBtn');
+            const nikForm = document.getElementById('nikForm');
+            const suggestionBox = document.getElementById('nikSuggestions');
+
+            // === Inline edit ===
+            editNikBtn.addEventListener('click', () => {
+                nikInput.removeAttribute('disabled');
+                editNikBtn.classList.add('d-none');
+                saveNikBtn.classList.remove('d-none');
+                cancelNikBtn.classList.remove('d-none');
+                nikInput.focus();
             });
 
-            cancelEmailBtn.addEventListener('click', () => {
-                emailInput.value = "{{ auth()->user()->email }}";
-                emailInput.setAttribute('readonly', true);
-                editEmailBtn.classList.remove('d-none');
-                saveEmailBtn.classList.add('d-none');
-                cancelEmailBtn.classList.add('d-none');
+            cancelNikBtn.addEventListener('click', () => {
+                nikInput.value = "{{ optional(auth()->user()->employee)->nik }}";
+                nikInput.setAttribute('disabled', true);
+                editNikBtn.classList.remove('d-none');
+                saveNikBtn.classList.add('d-none');
+                cancelNikBtn.classList.add('d-none');
+                suggestionBox.innerHTML = '';
             });
 
-            saveEmailBtn.addEventListener('click', () => {
-                emailHidden.value = emailInput.value;
-                emailForm.submit();
+            saveNikBtn.addEventListener('click', () => {
+                // jangan ambil dari nikInput, tapi dari hidden
+                if (!nikHidden.value) {
+                    alert('Silakan pilih NIK dari daftar yang tersedia.');
+                    return;
+                }
+                nikForm.submit();
             });
 
-            // PASSWORD form toggle
+            // === Suggestion ===
+            function showSuggestions(keyword) {
+                suggestionBox.innerHTML = '';
+                if (!keyword) return;
+
+                const filtered = allEmployees.filter(e =>
+                    e.nik.includes(keyword) || e.name.toLowerCase().includes(keyword.toLowerCase())
+                );
+
+                filtered.forEach(e => {
+                    const div = document.createElement('div');
+                    div.classList.add('list-group-item', 'list-group-item-action');
+                    div.textContent = `${e.nik} - ${e.name}`;
+
+                    div.addEventListener('click', () => {
+                        nikInput.value = `${e.nik} - ${e.name}`;
+                        nikHidden.value = e.nik; // disimpan hanya NIK
+                        suggestionBox.innerHTML = '';
+                    });
+
+                    suggestionBox.appendChild(div);
+                });
+            }
+
+            nikInput.addEventListener('input', () => {
+                if (!nikInput.disabled) {
+                    showSuggestions(nikInput.value);
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!nikInput.contains(e.target) && !suggestionBox.contains(e.target)) {
+                    suggestionBox.innerHTML = '';
+                }
+            });
+
+            // ==== PASSWORD toggle ====
             const showPasswordForm = document.getElementById('showPasswordForm');
             const passwordForm = document.getElementById('passwordForm');
             const savePasswordBtn = document.getElementById('savePasswordBtn');
@@ -149,28 +201,5 @@
                 }
             });
         });
-
-        document.getElementById('saveEmailBtn')?.addEventListener('click', function() {
-            const email = document.getElementById('emailInput').value;
-            document.getElementById('emailHidden').value = email;
-            document.getElementById('emailForm').submit();
-        });
-
-        document.getElementById('savePasswordBtn')?.addEventListener('click', function() {
-            const pass = document.getElementById('newPassword').value;
-            const confirm = document.getElementById('confirmPassword').value;
-
-            if (pass !== confirm) {
-                alert('Password tidak sama!');
-                return;
-            }
-
-            alert('halo')
-
-            document.getElementById('passwordHidden').value = pass;
-            document.getElementById('passwordConfirmationHidden').value = confirm;
-            document.getElementById('passwordHiddenForm').submit();
-        });
     </script>
-
 @endsection

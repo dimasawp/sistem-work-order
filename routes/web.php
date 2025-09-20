@@ -29,9 +29,24 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/employees', [EmployeeController::class, 'index'])->name('employees');
 
     Route::get('/profile', [UserController::class, 'profile'])->name('profile');
-    // Route::put('/profile/update-email', [UserController::class, 'updateEmail'])->name('profile.update.email');
+    Route::put('/profile/update-nik', [UserController::class, 'updateNik'])->name('profile.update.nik');
     Route::put('/profile/update-password', [UserController::class, 'updatePassword'])->name('profile.update.password');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('/generate-ticket/{deptId}', [JobController::class, 'generateTicket']);
+
+
+    Route::put('/jobs/{job}/confirm', [JobController::class, 'confirm'])->name('jobs.confirm');
+    Route::put('/jobs/{job}/reject', [JobController::class, 'reject'])->name('jobs.reject');
+
+
+    // Route::post('/jobs/store', [JobController::class, 'store'])->name('jobs.store');
+    Route::post('/jobs', [JobController::class, 'store'])->name('jobs.store');
+    Route::put('/jobs/{job}', [JobController::class, 'update'])->name('jobs.update');
+    Route::delete('/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
+    Route::post('/jobs/{job}/update-time', [JobController::class, 'updateTime'])->name('jobs.updateTime');
+    Route::post('/employees/sync', [EmployeeController::class, 'sync'])->name('employees.sync');
+
+    Route::get('/employees/by-department/{department}', [EmployeeController::class, 'byDepartment'])
+        ->name('employees.byDepartment');
 });

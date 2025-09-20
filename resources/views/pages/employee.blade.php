@@ -1,13 +1,10 @@
 @extends('layouts.app')
 
-{{-- @section('title', 'Employee List') --}}
 @section('title', 'Daftar Karyawan')
-{{-- @section('page-name', 'Employee List') --}}
 @section('page-name', 'Daftar Karyawan')
 
 @section('content')
     <div class="p-4">
-        {{-- <h3 class="mb-3">Employee List</h3> --}}
         <h3 class="mb-3">Daftar Karyawan</h3>
 
         <div class="mb-3">

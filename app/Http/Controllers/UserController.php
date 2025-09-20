@@ -2,25 +2,53 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller {
-    public function profile() {
-        return view('pages.profile');
+    // public function profile() {
+    //     return view('pages.profile');
+    // }
+    private function getEmployeesForDepartment($departmentId) {
+        $departmentEmployees = Employee::whereHas('subDepartment.departments', function ($q) use ($departmentId) {
+            $q->where('departments.id', $departmentId);
+        })->with('subDepartment')->get();
+
+        return $departmentEmployees->map(function ($e) {
+            return [
+                'id' => $e->id,
+                'nik' => $e->nik,
+                'name' => $e->name,
+                'sub_department' => $e->subDepartment->name ?? null,
+            ];
+        })->values();
     }
 
-    // public function updateEmail(Request $request) {
-    //     $request->validate([
-    //         'email' => 'required|email|unique:users,email,' . auth()->id(),
-    //     ]);
+    public function profile() {
+        $user = auth()->user();
 
-    //     $user = auth()->user();
-    //     $user->email = $request->email;
-    //     $user->save();
+        // ambil semua employee di dept user login
+        $employees =  $this->getEmployeesForDepartment($user->department_id);
 
-    //     return back()->with('success', 'Email berhasil diperbarui.');
-    // }
+        return view('pages.profile', [
+            'employees' => $employees,
+        ]);
+    }
+
+
+    public function updateNik(Request $request) {
+        $request->validate([
+            'nik' => 'required|exists:employees,nik',
+        ]);
+
+        $user = auth()->user();
+        $user->nik = $request->nik;
+        $user->save();
+
+        return back()->with('success', 'NIK berhasil diperbarui.');
+    }
+
 
     public function updatePassword(Request $request) {
         $request->validate([

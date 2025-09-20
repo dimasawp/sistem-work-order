@@ -47,8 +47,7 @@
                                             <small class="text-muted">{{ $job->ticket_number }}</small>
                                         </div>
                                         <div>
-                                            <span
-                                                class="badge {{ $job->status === 'pending' ? 'bg-secondary' : ($job->status === 'on_process' ? 'bg-warning text-dark' : 'bg-success') }}">
+                                            <span class="badge text-white {{ $job->status === 'pending' ? 'bg-secondary' : ($job->status === 'on_process' ? 'bg-warning' : 'bg-success') }}">
                                                 {{ ucfirst($job->status) }}
                                             </span>
                                         </div>
@@ -111,11 +110,14 @@
     </div>
 
     {{-- Komponen Modal Job --}}
+    {{-- {{ dd($departments) }} --}}
     <x-job-modal :departments="$departments ?? []" mode="view" />
 
     {{-- Script --}}
     <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script>
+        window.departments = @json($departments ?? []);
+
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.job-card').forEach(card => {
                 card.addEventListener('click', () => {

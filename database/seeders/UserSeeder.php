@@ -30,7 +30,8 @@ class UserSeeder extends Seeder {
             if ($dept) {
                 $user = User::create([
                     'username'      => 'admin-' . $initial,
-                    'password'      => Hash::make('password'),
+                    // 'password'      => Hash::make('password'),
+                    'password'      => 'password',
                     'department_id' => $dept->id,
                     'nik'           => null,
                 ]);

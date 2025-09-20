@@ -1,19 +1,24 @@
 @extends('layouts.app')
 
-{{-- @section('title', 'Deliver Job') --}}
 @section('title', 'Buat Job')
-{{-- @section('page-name', 'Deliver Job') --}}
 @section('page-name', 'Buat Job')
 
 @section('content')
     <div class="p-4">
-        {{-- <h3 class="mb-3">Deliver Job</h3> --}}
         <h3 class="mb-3">Buat Job</h3>
+
+        <div id="noNikAlert" class="alert alert-warning alert-dismissible fade show d-none" role="alert">
+            <strong>Peringatan!</strong> Anda belum bisa menambahkan Job karena NIK belum diisi.
+            Silakan <a href="{{ route('profile') }}" class="alert-link">isi NIK di halaman Profil</a>.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
 
         <!-- Toggle View -->
         <div class="mb-3 d-flex justify-content-between">
-            <button class="btn btn-success" onclick="openAddJobModal()"><i class="fa-solid fa-plus me-2"></i> Tambah
-                Job</button>
+            <button class="btn btn-success" onclick="handleAddJobClick()">
+                <i class="fa-solid fa-plus me-2"></i>
+                Tambah Job
+            </button>
 
             <div class="btn-group" role="group" aria-label="View Toggle">
                 <input type="radio" class="btn-check" name="viewToggle" id="cardViewRadio" autocomplete="off" checked>
@@ -48,7 +53,8 @@
                                     </div>
                                     <div>
                                         <button type="button" class="btn btn-sm btn-danger text-white"
-                                            onclick="openDeleteModal('{{ route('jobs.destroy', $job->id) }}')" {{ $job->status != 'pending' ? 'disabled' : ''}}>
+                                            onclick="openDeleteModal('{{ route('jobs.destroy', $job->id) }}')"
+                                            {{ $job->status != 'pending' ? 'disabled' : '' }}>
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </div>
@@ -58,10 +64,18 @@
                             <p class="text-secondary small flex-grow-1">{{ Str::limit($job->description, 80) }}</p>
                             <div class="d-flex justify-content-between align-items-center mt-auto">
                                 <p class="small text-muted mb-0">{{ $job->created_at->format('d M Y') }}</p>
-                                <span
-                                    class="badge {{ $job->status === 'pending' ? 'bg-secondary' : ($job->status === 'on_process' ? 'bg-warning text-dark' : 'bg-success') }}">
-                                    {{ ucfirst($job->status) }}
-                                </span>
+                                <div>
+                                    <span
+                                        class="badge text-white {{ $job->status === 'pending' ? 'bg-secondary' : ($job->status === 'on_process' ? 'bg-warning text-dark' : 'bg-success') }}">
+                                        {{ ucfirst($job->status) }}
+                                    </span>
+                                    @if ($job->giver_confirmation)
+                                        <span
+                                            class="badge text-white {{ $job->giver_confirmation == 'rejected' ? 'bg-danger' : 'bg-warning' }}">
+                                            {{ $job->giver_confirmation == 'rejected' ? 'Dikembalikan' : 'Dikonfirmasi' }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -76,7 +90,8 @@
             <table class="table table-bordered">
                 <thead>
                     <tr class="text-center">
-                        <th>No. Ticket</th>
+                        <th>No.</th>
+                        <th>No.Ticket</th>
                         <th>Departemen</th>
                         <th>Judul</th>
                         <th>Deskripsi</th>
@@ -88,22 +103,33 @@
                 <tbody>
                     @foreach ($jobs as $job)
                         <tr>
+                            <td class="text-center">{{ $loop->iteration }}</td>
                             <td class="text-center">{{ $job->ticket_number }}</td>
                             <td>{{ $job->department->name }}</td>
                             <td>{{ $job->title }}</td>
                             <td>{{ $job->description }}</td>
                             <td class="text-center">
                                 <span
-                                    class="badge {{ $job->status == 'pending' ? 'bg-secondary' : ($job->status == 'on_process' ? 'bg-warning' : 'bg-danger') }}">{{ $job->status }}</span>
+                                    class="badge text-white {{ $job->status == 'pending' ? 'bg-secondary' : ($job->status == 'on_process' ? 'bg-warning' : 'bg-success') }}">
+                                    {{ ucfirst($job->status) }}
+                                </span>
+
+                                @if ($job->giver_confirmation)
+                                    <span
+                                        class="badge text-white {{ $job->giver_confirmation == 'rejected' ? 'bg-danger' : 'bg-warning' }}">
+                                        {{ $job->giver_confirmation == 'rejected' ? 'Dikembalikan' : 'Dikonfirmasi' }}
+                                    </span>
+                                @endif
                             </td>
-                            <td class="text-center">{{ $job->created_at->format('d M Y') }}</td>
+                            <td class="text-center text-nowrap">{{ $job->created_at->format('d M Y') }}</td>
                             <td class="d-flex flex-row justify-content-center gap-2">
                                 <button class="btn btn-sm btn-warning text-white"
                                     onclick='openEditJobModal(@json($job))'>
                                     <i class="fas fa-pencil-alt"></i>
                                 </button>
                                 <button type="button" class="btn btn-sm btn-danger text-white"
-                                    onclick="openDeleteModal('{{ route('jobs.destroy', $job->id) }}')" {{ $job->status != 'pending' ? 'disabled' : ''}}>
+                                    onclick="openDeleteModal('{{ route('jobs.destroy', $job->id) }}')"
+                                    {{ $job->status != 'pending' ? 'disabled' : '' }}>
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </td>
@@ -114,10 +140,9 @@
         </div>
     </div>
 
-    {{-- MODAL JOB COMPONENT --}}
+    <!-- MODAL JOB COMPONENT -->
     <x-job-modal :departments="$departments" mode="giver" />
 
-    {{-- Modal hapus (dihalaman ini saja fitur hapusnya) --}}
     <!-- Modal Konfirmasi Hapus -->
     <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -143,6 +168,23 @@
     </div>
 
     <script>
+        // Inject info user dari Laravel
+        window.currentUser = {
+            id: {{ auth()->id() }},
+            nik: "{{ optional(auth()->user()->employee)->nik ?? '' }}",
+            name: "{{ optional(auth()->user()->employee)->name ?? '' }}"
+        };
+
+        function handleAddJobClick() {
+            if (!window.currentUser.nik) {
+                // kalau NIK kosong, tampilkan alert
+                document.getElementById('noNikAlert').classList.remove('d-none');
+                return;
+            }
+            // kalau ada NIK, buka modal tambah job
+            openAddJobModal();
+        }
+
         const cardViewRadio = document.getElementById('cardViewRadio');
         const listViewRadio = document.getElementById('listViewRadio');
         const cardContainer = document.getElementById('cardContainer');

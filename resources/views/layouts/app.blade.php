@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ config('app.name', 'Laravel App') }}</title>
+    {{-- <title>{{ config('app.name', 'Laravel App') }}</title> --}}
+    <title>WorkOrder</title>
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
@@ -105,12 +106,11 @@
                             href="#" id="userDropdown" role="button" data-bs-toggle="dropdown"
                             aria-expanded="false">
                             <i class="fas fa-user-circle fa-xl me-2"></i>
-                            {{-- <span>Username</span> --}}
                             <span>{{ auth()->user()->username }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li><a class="dropdown-item" href="{{ route('profile') }}">Profile</a></li>
-                            <li><a class="dropdown-item" href="#">Settings</a></li>
+                            {{-- <li><a class="dropdown-item" href="#">Settings</a></li> --}}
                             <li>
                                 <hr class="dropdown-divider">
                             </li>

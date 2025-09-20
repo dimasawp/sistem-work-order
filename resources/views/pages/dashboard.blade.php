@@ -62,7 +62,7 @@
                             <h1 class="mt-1">{{ $deptPendingJobsCount }}</h1>
                         </div>
                         <div class="bg-dark text-white rounded p-2 d-flex justify-content-center align-items-center" style="width: 45px; height: 45px;">
-                            <i class="fas fa-check-circle fa-lg"></i>
+                            <i class="fas fa-clock fa-lg"></i>
                         </div>
                     </div>
                 </div>

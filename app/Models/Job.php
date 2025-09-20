@@ -10,7 +10,9 @@ class Job extends Model {
 
     protected $fillable = [
         'title',
-        'job_giver',
+        'user_id',
+        'giver_nik',
+        'giver_name',
         'tools_and_materials',
         'description',
         'start_time',
@@ -19,18 +21,8 @@ class Job extends Model {
         'status',
     ];
 
-    // protected $casts = [
-    //     'start_time' => 'datetime',
-    //     'end_time'   => 'datetime',
-    // ];
-
-    public function employees() {
-        return $this->belongsToMany(Employee::class, 'job_receivers', 'job_id', 'employee_id')
-            ->withTimestamps();
-    }
-
     public function giver() {
-        return $this->belongsTo(Employee::class, 'employee_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function department() {
@@ -39,5 +31,25 @@ class Job extends Model {
 
     public function receivers() {
         return $this->belongsToMany(Employee::class, 'job_receivers', 'job_id', 'employee_id');
+    }
+
+    protected $appends = ['giver_id', 'giver_display_name'];
+
+    public function getGiverIdAttribute() {
+        return $this->giver?->id;
+    }
+
+    public function getGiverDisplayNameAttribute() {
+        // kalau masih ada relasi
+        if ($this->giver && $this->giver->employee) {
+            return $this->giver->employee->nik . ' - ' . $this->giver->employee->name;
+        }
+
+        // fallback ke snapshot
+        if ($this->giver_nik || $this->giver_name) {
+            return trim($this->giver_nik . ' - ' . $this->giver_name, ' -');
+        }
+
+        return null;
     }
 }

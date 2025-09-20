@@ -27,7 +27,6 @@ class Employee extends Model {
         );
     }
 
-
     public function subDepartment() {
         return $this->belongsTo(SubDepartment::class);
     }
