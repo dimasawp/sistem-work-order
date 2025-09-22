@@ -165,8 +165,7 @@
 
                     showConfirm(
                         `Apakah kamu yakin ingin menempatkan job ini di tanggal ${startLocal}?`,
-                        () => { // ✅ onConfirm
-                            // fetch(`/api/jobs/${jobId}/update-time`, {
+                        () => { // onConfirm
                             fetch(`/jobs/${jobId}/update-time`, {
                                     method: 'POST',
                                     headers: {
@@ -184,7 +183,7 @@
                                     if (!data.success) {
                                         alert("Gagal update job!");
                                     } else {
-                                        // ✅ Update juga data job agar modal bisa baca tanggal baru
+                                        // Update juga data job agar modal bisa baca tanggal baru
                                         if (job) {
                                             job.start_time = startLocal;
                                             job.end_time = null;
@@ -205,7 +204,7 @@
                                                     badge.classList.add('bg-warning');
                                                 }
 
-                                                // ✅ Kalau mau simpan status baru di atribut data-event juga:
+                                                // Kalau mau simpan status baru di atribut data-event juga:
                                                 const eventData = JSON.parse(listItem.dataset
                                                     .event);
                                                 eventData.job.status = 'on_process';
@@ -260,7 +259,6 @@
                     showConfirm(
                         `Apakah kamu yakin ingin memindahkan job ini ke tanggal ${startLocal}?`,
                         () => {
-                            // fetch(`/api/jobs/${jobId}/update-time`, {
                             fetch(`/jobs/${jobId}/update-time`, {
                                     method: 'POST',
                                     headers: {

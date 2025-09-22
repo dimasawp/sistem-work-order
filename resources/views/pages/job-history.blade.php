@@ -6,13 +6,73 @@
 @section('content')
     <div class="p-4">
         <h3 class="mb-3">Histori Job</h3>
-        
+
         <div class="">
             <div class="d-flex justify-content-end align-items-center mb-3">
-                <button class="btn btn-success">
-                    <i class="fas fa-file-excel"></i> Export Excel
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal">
+                    <i class="fas fa-file-excel me-2"></i> Export Excel
                 </button>
             </div>
+
+            <!-- Modal Export -->
+            <div class="modal fade" id="exportModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <form method="GET" action="{{ route('jobs.export') }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Export Excel</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Pilih Opsi Export</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="export_type"
+                                            id="exportThisMonth" value="this_month" checked>
+                                        <label class="form-check-label" for="exportThisMonth">
+                                            Bulan Ini
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="export_type" id="exportCustom"
+                                            value="custom">
+                                        <label class="form-check-label" for="exportCustom">
+                                            Custom
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Tanggal Awal</label>
+                                    <input type="date" name="start_date" id="startDate" class="form-control" disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Tanggal Akhir</label>
+                                    <input type="date" name="end_date" id="endDate" class="form-control" disabled>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-file-export me-2"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                // Enable/disable date input kalau pilih custom
+                document.querySelectorAll('input[name="export_type"]').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        const isCustom = this.value === 'custom';
+                        document.getElementById('startDate').disabled = !isCustom;
+                        document.getElementById('endDate').disabled = !isCustom;
+                    });
+                });
+            </script>
 
             <table class="table table-bordered table-striped">
                 <thead>
@@ -40,14 +100,15 @@
                             <td>{{ $job->description }}</td>
                             <td>{{ $job->giver->employee->name ?? $job->user_id }}</td>
                             <td class="text-center">
-                                <span class="badge text-white 
-                                {{ $job->status == 'pending' ? 'bg-secondary' : 
-                                       ($job->status == 'on_process' ? 'bg-warning' : 'bg-success') }}">
+                                <span
+                                    class="badge text-white 
+                                {{ $job->status == 'pending' ? 'bg-secondary' : ($job->status == 'on_process' ? 'bg-warning' : 'bg-success') }}">
                                     {{ ucfirst($job->status) }}
                                 </span>
-                                
+
                                 @if ($job->giver_confirmation)
-                                    <span class="badge text-white 
+                                    <span
+                                        class="badge text-white 
                                         {{ $job->giver_confirmation == 'rejected' ? 'bg-danger' : 'bg-success' }}">
                                         {{ $job->giver_confirmation == 'rejected' ? 'Dikembalikan' : 'Dikonfirmasi' }}
                                     </span>
@@ -57,7 +118,8 @@
                             <td>{{ $job->start_time }}</td>
                             <td>{{ $job->end_time }}</td>
                             <td class="d-flex flex-row justify-content-center gap-2">
-                                <button class="btn btn-sm btn-secondary text-white" onclick='openJobModal(@json($job))'>
+                                <button class="btn btn-sm btn-secondary text-white"
+                                    onclick='openJobModal(@json($job))'>
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </td>

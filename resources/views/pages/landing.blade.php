@@ -3,8 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Jobs Landing</title>
+    <title>WorkOrder</title>
 
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <script src="{{ asset('js/job-modal.js') }}"></script>
 
@@ -39,7 +40,8 @@
                 <div class="row g-3">
                     @forelse($jobs as $job)
                         <div class="col-md-4">
-                            <div class="card shadow-sm h-100 position-relative job-card" data-bs-toggle="modal" data-bs-target="#jobModal" data-job='@json($job)'>
+                            <div class="card shadow-sm h-100 position-relative job-card" data-bs-toggle="modal"
+                                data-bs-target="#jobModal" data-job='@json($job)'>
                                 <div class="card-body d-flex flex-column">
                                     <div class="d-flex justify-content-between mb-2">
                                         <div>
@@ -47,7 +49,8 @@
                                             <small class="text-muted">{{ $job->ticket_number }}</small>
                                         </div>
                                         <div>
-                                            <span class="badge text-white {{ $job->status === 'pending' ? 'bg-secondary' : ($job->status === 'on_process' ? 'bg-warning' : 'bg-success') }}">
+                                            <span
+                                                class="badge text-white {{ $job->status === 'pending' ? 'bg-secondary' : ($job->status === 'on_process' ? 'bg-warning' : 'bg-success') }}">
                                                 {{ ucfirst($job->status) }}
                                             </span>
                                         </div>
@@ -97,8 +100,14 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control">
+                            <div class="input-group">
+                                <input type="password" name="password" class="form-control" id="passwordInput">
+                                <button type="button" class="btn btn-light text-secondary" id="togglePassword">
+                                    <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                                </button>
+                            </div>
                         </div>
+
                         <button type="submit" class="btn btn-primary w-100">
                             Login
                         </button>
@@ -124,6 +133,21 @@
                     const job = JSON.parse(card.dataset.job);
                     openJobModal(job);
                 });
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordInput = document.getElementById('passwordInput');
+            const togglePassword = document.getElementById('togglePassword');
+            const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+
+            togglePassword.addEventListener('click', () => {
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+
+                // Ganti icon
+                togglePasswordIcon.classList.toggle('fa-eye');
+                togglePasswordIcon.classList.toggle('fa-eye-slash');
             });
         });
     </script>

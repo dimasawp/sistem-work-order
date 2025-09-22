@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Job;
+use App\Models\User;
+use App\Exports\JobsExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -181,7 +184,7 @@ class JobController extends Controller {
         $ticketNumber = $this->generateTicketNumber($request->department_target_id);
 
         // ambil user
-        $user = \App\Models\User::with('employee')->findOrFail($request->user_id);
+        $user = User::with('employee')->findOrFail($request->user_id);
 
         $job = new Job();
         $job->title                = $request->title;
@@ -202,7 +205,10 @@ class JobController extends Controller {
 
         $job->save();
 
-        return redirect()->route('jobs.deliver')->with('success', 'Job berhasil ditambahkan!');
+        return redirect()->route('jobs.deliver')->with('toast', [
+            'type' => 'success',
+            'message' => 'Job berhasil ditambahkan.'
+        ]);
     }
 
     public function update(Request $request, Job $job) {
@@ -242,14 +248,20 @@ class JobController extends Controller {
         $job->receivers()->sync($request->input('employee_ids', []));
 
         $redirectRoute = $request->redirect_to ?? 'jobs.deliver';
-        return redirect()->route($redirectRoute)->with('success', 'Job berhasil diperbarui!');
+        return redirect()->route($redirectRoute)->with('toast', [
+            'type' => 'success',
+            'message' => 'Job berhasil diperbarui.'
+        ]);
     }
 
     public function confirm(Job $job) {
         $job->giver_confirmation = 'accepted';
         $job->save();
 
-        return response()->json(['message' => 'Job dikonfirmasi']);
+        return redirect()->back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Job berhasil dikonfirmasi.'
+        ]);
     }
 
     public function reject(Job $job) {
@@ -257,12 +269,18 @@ class JobController extends Controller {
         $job->status = 'on_process'; // atau status lain sesuai kebutuhan
         $job->save();
 
-        return response()->json(['message' => 'Job ditolak']);
+        return redirect()->back()->with('toast', [
+            'type' => 'warning',
+            'message' => 'Job ditolak.'
+        ]);
     }
 
     public function destroy(Job $job) {
         $job->delete();
-        return redirect()->back()->with('success', 'Job berhasil dihapus!');
+        return redirect()->back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Job berhasil dihapus.'
+        ]);
     }
 
     public function updateTime(Request $request, Job $job) {
@@ -292,5 +310,34 @@ class JobController extends Controller {
         $job->save();
 
         return response()->json(['success' => true, 'job' => $job]);
+    }
+
+    public function export(Request $request) {
+        $userDeptId = auth()->user()->department_id;
+
+        $query = Job::where('department_target_id', $userDeptId);
+
+        if ($request->export_type === 'this_month') {
+            $query->whereMonth('created_at', Carbon::now()->month)
+                ->whereYear('created_at', Carbon::now()->year);
+            $filename = "Jobs_" . now()->format('F') . ".xlsx";
+        }
+
+        if ($request->export_type === 'custom') {
+            $request->validate([
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date'
+            ]);
+
+            $query->whereBetween('created_at', [
+                $request->start_date,
+                $request->end_date
+            ]);
+            $filename = "Jobs_{$request->start_date}_{$request->end_date}.xlsx";
+        }
+
+        $jobs = $query->get();
+
+        return Excel::download(new JobsExport($jobs), $filename);
     }
 }

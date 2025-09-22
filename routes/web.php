@@ -35,12 +35,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/generate-ticket/{deptId}', [JobController::class, 'generateTicket']);
 
-
     Route::put('/jobs/{job}/confirm', [JobController::class, 'confirm'])->name('jobs.confirm');
     Route::put('/jobs/{job}/reject', [JobController::class, 'reject'])->name('jobs.reject');
 
-
-    // Route::post('/jobs/store', [JobController::class, 'store'])->name('jobs.store');
     Route::post('/jobs', [JobController::class, 'store'])->name('jobs.store');
     Route::put('/jobs/{job}', [JobController::class, 'update'])->name('jobs.update');
     Route::delete('/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
@@ -49,4 +46,5 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/employees/by-department/{department}', [EmployeeController::class, 'byDepartment'])
         ->name('employees.byDepartment');
+    Route::get('/jobs/export', [JobController::class, 'export'])->name('jobs.export');
 });

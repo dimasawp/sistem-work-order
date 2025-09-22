@@ -16,11 +16,9 @@ class AuthController extends Controller {
 
         $user = User::where('username', $credentials['username'])->first();
 
-        // if ($user && Hash::check($credentials['password'], $user->password)) {
         if ($user && $user->password === $credentials['password']) {
             Auth::login($user);
             $request->session()->regenerate();
-            // return redirect()->intended('/dashboard'); // langsung ke halaman utama
             return redirect()->route('dashboard');
         }
 

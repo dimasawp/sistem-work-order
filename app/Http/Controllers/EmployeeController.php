@@ -15,18 +15,19 @@ class EmployeeController extends Controller {
         $employees = Employee::whereHas('subDepartment.departments', function ($q) use ($userDeptId) {
             $q->where('departments.id', $userDeptId);
         })
-            ->with('subDepartment') // biar gak N+1 query
-            ->paginate(10); // <--- paginate 20 per page
+            ->with('subDepartment')
+            ->paginate(10);
 
         return view('pages.employee', compact('employees'));
     }
 
     public function sync() {
         // Contoh fetch ke API payroll
-        $response = Http::asForm()->post('http://192.168.11.29/payroll_api/karyawan/index.php', [
-            'username_login' => 'pm3',
-            'password_login' => 'magangpm3',
+        $response = Http::asForm()->post(config('services.payroll_api.url'), [
+            'username_login' => config('services.payroll_api.username'),
+            'password_login' => config('services.payroll_api.password'),
         ]);
+
 
         if ($response->failed()) {
             return back()->with('error', 'Gagal ambil data dari Payroll API');
@@ -47,7 +48,6 @@ class EmployeeController extends Controller {
             'pm' => ['PIMPINAN'],
             'pp' => ['PM 3', 'PM 3 ADDITIVE', 'PM 3 HYDRA', 'PM 3 MS POT', 'PM 3 OUTSORSING', 'PM 3 PELAKSANA', 'PM 3 PENGAWAS', 'PM 3 REFINER', 'PM 3 UPL', 'PM 3 WKL'],
             'tm' => ['TEHNISI', 'TEHNISI BOILER A GAB', 'TEHNISI OS BOILER', 'TEHNISI OUTSORSING'],
-            // 'tm' => ['TEHNISI BOILER A GAB', 'TEHNISI OS BOILER', 'TEHNISI OUTSORSING'],
             'tl' => ['TEHNISI LISTRIK INS', 'TEHNISI OUTSORSING'],
         ];
 
@@ -110,7 +110,6 @@ class EmployeeController extends Controller {
                 ]
             );
         }
-
 
         return back()->with('success', 'Data karyawan berhasil disinkronisasi');
     }

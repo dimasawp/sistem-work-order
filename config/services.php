@@ -34,5 +34,10 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'payroll_api' => [
+        'url' => env('PAYROLL_API_URL'),
+        'username' => env('PAYROLL_API_USERNAME'),
+        'password' => env('PAYROLL_API_PASSWORD'),
+    ],
 
 ];

@@ -7,9 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller {
-    // public function profile() {
-    //     return view('pages.profile');
-    // }
     private function getEmployeesForDepartment($departmentId) {
         $departmentEmployees = Employee::whereHas('subDepartment.departments', function ($q) use ($departmentId) {
             $q->where('departments.id', $departmentId);
@@ -46,7 +43,11 @@ class UserController extends Controller {
         $user->nik = $request->nik;
         $user->save();
 
-        return back()->with('success', 'NIK berhasil diperbarui.');
+        // return back()->with('success', 'NIK berhasil diperbarui.');
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'NIK berhasil diperbarui.'
+        ]);
     }
 
 
@@ -56,9 +57,13 @@ class UserController extends Controller {
         ]);
 
         $user = auth()->user();
-        $user->password = Hash::make($request->password);
+        $user->password = $request->password;
         $user->save();
 
-        return back()->with('success', 'Password berhasil diperbarui.');
+        // return back()->with('success', 'Password berhasil diperbarui.');
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Password berhasil diperbarui.'
+        ]);
     }
 }

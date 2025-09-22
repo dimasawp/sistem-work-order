@@ -20,19 +20,23 @@
             display: flex;
             flex-direction: row;
         }
+
         .sidebar {
             width: 250px;
             background-color: #212529;
             color: #fff;
             min-height: 100vh;
         }
+
         .sidebar .nav-link {
             color: #adb5bd;
         }
+
         .sidebar .nav-link.active {
             background-color: #343a40;
             color: #fff;
         }
+
         .content {
             flex-grow: 1;
             /* padding: 20px; */
@@ -40,6 +44,7 @@
         }
     </style>
 </head>
+
 <body>
     {{-- Sidebar --}}
     <div class="sidebar d-flex flex-column p-3">
@@ -138,7 +143,8 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
                     <div class="modal-body text-center">
-                        <i class="fas fa-sign-out-alt fa-2x text-danger mb-3 p-4 border border-4 border-danger rounded-circle"></i>
+                        <i
+                            class="fas fa-sign-out-alt fa-2x text-danger mb-3 p-4 border border-4 border-danger rounded-circle"></i>
                         <p>Apakah kamu yakin ingin logout dari aplikasi?</p>
                     </div>
                     <div class="modal-footer border-0 d-flex justify-content-center">
@@ -153,7 +159,21 @@
             </div>
         </div>
     </div>
+    @if (session('toast'))
+        <x-toast :type="session('toast.type')" :message="session('toast.message')" id="dynamicToast" />
 
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                let toastEl = document.getElementById("dynamicToast");
+                if (toastEl) {
+                    let toast = new bootstrap.Toast(toastEl, {
+                        delay: 3000
+                    });
+                    toast.show();
+                }
+            });
+        </script>
+    @endif
 
     <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script>
@@ -164,4 +184,5 @@
     </script>
     @livewireScripts
 </body>
+
 </html>

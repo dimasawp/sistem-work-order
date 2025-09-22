@@ -113,7 +113,6 @@
     </div>
 </div>
 <script>
-
     window.jobMode = "{{ $mode }}";
     // Setelah pilih employee
     function setEmployeeIds(employeeIds) {
@@ -130,6 +129,7 @@
             form.appendChild(input);
         });
     }
+    
     document.getElementById('jobDepartment').addEventListener('change', function() {
         const deptId = this.value;
         if (!deptId) return;
@@ -147,49 +147,21 @@
         document.execCommand('copy');
         alert('Ticket number copied!');
     }
-    
+
+    const jobForm = document.getElementById("jobForm");
+    const jobFormMethod = document.getElementById("jobFormMethod");
+
     document.getElementById("btnConfirmJob")?.addEventListener("click", () => {
         if (!window.currentJobId) return alert("Job belum dipilih");
-        fetch(`/jobs/${window.currentJobId}/confirm`, {
-                method: "PUT", // karena fetch tidak dukung PUT+form spoof
-                headers: {
-                    "X-CSRF-TOKEN": '{{ csrf_token() }}',
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    _method: "PUT"
-                }),
-            })
-            .then(res => {
-                if (!res.ok) throw new Error("Gagal konfirmasi");
-                return res.json();
-            })
-            .then(() => {
-                // alert("Job berhasil dikonfirmasi");
-                location.reload();
-            })
-            .catch(err => alert(err.message));
+        jobForm.action = `/jobs/${window.currentJobId}/confirm`; // route confirm
+        jobFormMethod.value = "PUT"; // spoof method PUT
+        jobForm.submit();
     });
+
     document.getElementById("btnRejectJob")?.addEventListener("click", () => {
         if (!window.currentJobId) return alert("Job belum dipilih");
-        fetch(`/jobs/${window.currentJobId}/reject`, {
-                method: "PUT",
-                headers: {
-                    "X-CSRF-TOKEN": '{{ csrf_token() }}',
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    _method: "PUT"
-                }),
-            })
-            .then(res => {
-                if (!res.ok) throw new Error("Gagal menolak");
-                return res.json();
-            })
-            .then(() => {
-                // alert("Job berhasil ditolak");
-                location.reload();
-            })
-            .catch(err => alert(err.message));
+        jobForm.action = `/jobs/${window.currentJobId}/reject`; // route reject
+        jobFormMethod.value = "PUT";
+        jobForm.submit();
     });
 </script>

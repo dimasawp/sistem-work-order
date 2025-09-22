@@ -9,23 +9,12 @@ return new class extends Migration {
      * Run the migrations.
      */
     public function up(): void {
-        // Schema::create('users', function (Blueprint $table) {
-        //     $table->id();
-        //     $table->string('name');
-        //     $table->string('email')->unique();
-        //     $table->timestamp('email_verified_at')->nullable();
-        //     $table->string('password');
-        //     $table->rememberToken();
-        //     $table->timestamps();
-        // });
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('username')->unique();
             $table->string('password');
             $table->string('nik')->nullable(); // FK ke employees.nik
             $table->unsignedBigInteger('department_id'); // FK ke employees.nik
-            // $table->foreign('nik')->references('nik')->on('employees')->onDelete('set null');
-            // $table->foreignId('department_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
 
